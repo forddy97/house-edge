@@ -87,6 +87,7 @@ body{font-family:Verdana,Geneva,sans-serif;background:#1a0a2e;color:#ddd;overflo
 .store-tabs{display:flex}
 .store-tab{padding:6px 12px;font-size:10px;color:#666;cursor:pointer;border-bottom:2px solid transparent;text-transform:uppercase;letter-spacing:1px}
 .store-tab.active{color:#4ade80;border-color:#4ade80}
+.tab-badge{background:#4ade80;color:#0a0a12;font-size:9px;font-weight:700;border-radius:8px;padding:1px 5px;margin-left:4px;display:inline-block;min-width:14px;text-align:center}
 
 /* Upgrade icons row */
 .upgrades-row{display:flex;flex-wrap:wrap;gap:4px;padding:8px;border-bottom:1px solid #1a1a2a;min-height:40px}
@@ -165,11 +166,10 @@ body{font-family:Verdana,Geneva,sans-serif;background:#1a0a2e;color:#ddd;overflo
   <div class="right" id="rightPanel">
     <div class="store-header"><span>Store</span></div>
     <div class="store-tabs">
-      <div class="store-tab active" onclick="setTab('buildings')">Buildings</div>
-      <div class="store-tab" onclick="setTab('upgrades')">Upgrades</div>
-      <div class="store-tab" onclick="setTab('prestige')" id="pTab">Prestige</div>
+      <div class="store-tab active" onclick="setTab('buildings')" id="tabBuildings">Buildings</div>
+      <div class="store-tab" onclick="setTab('upgrades')" id="tabUpgrades">Upgrades</div>
+      <div class="store-tab" onclick="setTab('prestige')" id="tabPrestige">Prestige</div>
     </div>
-    <div id="upgradesRow" class="upgrades-row"></div>
     <div id="storeList"></div>
   </div>
 </div>
@@ -600,9 +600,12 @@ let storeTab="buildings";
 function setTab(t){
   storeTab=t;
   document.querySelectorAll(".store-tab").forEach(el=>el.classList.remove("active"));
-  document.querySelectorAll(".store-tab").forEach(el=>{if(el.textContent.toLowerCase().includes(t))el.classList.add("active")});
+  const tabEl=document.getElementById("tab"+t.charAt(0).toUpperCase()+t.slice(1));
+  if(tabEl)tabEl.classList.add("active");
   render();
 }
+// Map tab IDs
+// tabBuildings, tabUpgrades, tabPrestige
 // setTab defined above
 
 // ── Render ─────────────────────────────────────────────────────
@@ -753,25 +756,22 @@ function render(){
 
   // Right: store
   // Upgrades row (icons)
-  // Only show upgrades the player has unlocked requirements for AND can see
+  // Track available upgrades for tab badge
   const availU=UPGRADES.filter(u=>!S.upgrades.includes(u.id)&&(!u.req||u.req(S))&&u.cost<=Math.max(S.totalCash*50,S.cash*100));
   if(!S.seenUpgrades)S.seenUpgrades=[];
-  // Check for newly available upgrades — announce in ticker
   for(const u of availU){
     if(!S.seenUpgrades.includes(u.id)){
       S.seenUpgrades.push(u.id);
       tick("NEW: "+u.n+" available. "+u.desc);
     }
   }
-  let ur="";
-  if(!S.hints)S.hints={};
-  if(availU.length>0&&!S.hints.upgrades){ur+=`<div class="hint">Upgrades boost your click power and buildings. Click to buy.</div>`;S.hints.upgrades=true;sv()}
-  for(const u of availU.slice(0,8)){
-    const locked=S.cash<u.cost;
-    const isNew=S.seenUpgrades.includes(u.id)&&!S.upgrades.includes(u.id)&&S.seenUpgrades.indexOf(u.id)>=S.seenUpgrades.length-3;
-    ur+=`<div class="store-item${locked?" locked":""}${isNew&&!locked?" new-glow":""}" onclick="buyU('${u.id}')" style="padding:6px 10px"><span class="s-icon">${u.icon}</span><div class="s-info"><div class="s-name" style="font-size:11px">${u.n}</div><div class="s-desc">${u.desc}</div></div><div class="s-cost" style="font-size:11px">${$(u.cost)}</div></div>`;
-  }
-  document.getElementById("upgradesRow").innerHTML=ur;
+  // Upgrade badge on tab
+  const affordableU=availU.filter(u=>S.cash>=u.cost);
+  const tabUp=document.getElementById("tabUpgrades");
+  if(tabUp)tabUp.innerHTML=availU.length>0?"Upgrades <span class='tab-badge'>"+availU.length+"</span>":"Upgrades";
+  const tabPr=document.getElementById("tabPrestige");
+  if(tabPr&&canPrestige()){const ce=chipsEarned();tabPr.innerHTML="Prestige <span class='tab-badge'>"+ce+"</span>"}
+  else if(tabPr)tabPr.innerHTML="Prestige";
 
   // Store list
   let sl="";
@@ -796,13 +796,25 @@ function render(){
       }
       sl+=`<div class="store-item${locked?" locked":""}" onclick="buyB('${b.id}')"><span class="s-icon">${b.icon}</span><div class="s-info"><div class="s-name">${b.n}</div><div class="s-desc">${b.desc}</div></div><div class="s-cost">${$(c)}</div><div class="s-owned">${owned||""}</div></div>`;
     }
-  }else{
-    // Show purchased upgrades
-    for(const uid of S.upgrades){
-      const u=UPGRADES.find(x=>x.id===uid);
-      if(u)sl+=`<div class="store-item" style="opacity:.6"><span class="s-icon">${u.icon}</span><div class="s-info"><div class="s-name">${u.n}</div><div class="s-desc">${u.desc}</div></div><div class="s-owned">✓</div></div>`;
+  }else if(storeTab==="upgrades"){
+    if(!S.hints)S.hints={};
+    if(availU.length>0&&!S.hints.upgrades){sl+=`<div class="hint">Upgrades boost your click power and buildings. Click to buy.</div>`;S.hints.upgrades=true;sv()}
+    // Available upgrades
+    for(const u of availU.slice(0,10)){
+      const locked=S.cash<u.cost;
+      const isNew=S.seenUpgrades.indexOf(u.id)>=S.seenUpgrades.length-3;
+      sl+=`<div class="store-item${locked?" locked":""}${isNew&&!locked?" new-glow":""}" onclick="buyU('${u.id}')"><span class="s-icon">${u.icon}</span><div class="s-info"><div class="s-name">${u.n}</div><div class="s-desc">${u.desc}</div></div><div class="s-cost">${$(u.cost)}</div></div>`;
     }
-    if(S.upgrades.length===0)sl+=`<div class="store-item"><div class="s-info"><div class="s-desc">No upgrades purchased yet.</div></div></div>`;
+    if(availU.length===0&&S.upgrades.length>0)sl+=`<div class="store-item"><div class="s-info"><div class="s-desc">All current upgrades purchased. More unlock as you grow.</div></div></div>`;
+    if(availU.length===0&&S.upgrades.length===0)sl+=`<div class="store-item"><div class="s-info"><div class="s-desc">Keep dealing to unlock upgrades.</div></div></div>`;
+    // Purchased
+    if(S.upgrades.length>0){
+      sl+=`<div class="store-header" style="margin-top:4px"><span>Purchased (${S.upgrades.length})</span></div>`;
+      for(const uid of [...S.upgrades].reverse().slice(0,8)){
+        const u=UPGRADES.find(x=>x.id===uid);
+        if(u)sl+=`<div class="store-item" style="opacity:.4"><span class="s-icon">${u.icon}</span><div class="s-info"><div class="s-name">${u.n}</div><div class="s-desc">${u.desc}</div></div><div class="s-owned">✓</div></div>`;
+      }
+    }
   }
 
   // Prestige tab
