@@ -476,9 +476,9 @@ const PRESTIGE_UPS=[
 ];
 
 function chipsEarned(){
-  // Chips earned = based on total cash this run. Exponential formula like Cookie Clicker.
-  if(S.totalCash<10000)return 0;
-  return Math.floor(Math.pow(S.totalCash/10000,.5));
+  // Chips earned = based on total cash this run. High threshold so prestige feels earned.
+  if(S.totalCash<1000000)return 0;// Need £1M before first prestige
+  return Math.floor(Math.pow(S.totalCash/1000000,.45));
 }
 
 function canPrestige(){return chipsEarned()>=1}
