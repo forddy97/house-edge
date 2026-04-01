@@ -621,6 +621,35 @@ function render(){
     const prod=bProd(b)*n;
     bh+=`<div class="building-row"><span class="b-icon">${b.icon}</span><div class="b-info"><div class="b-name">${b.n}</div><div class="b-prod">each producing ${$(bProd(b))}, total ${$(prod)}</div></div><span class="b-count">${n}</span></div>`;
   }
+  // Lifestyle panel
+  const LIFESTYLE=[
+    {cash:0,       home:"Mum's spare room",  car:"Bus pass",           partner:"Single",                    status:"Nobody"},
+    {cash:500,     home:"Bedsit above a chippy",car:"Rusty bicycle",   partner:"Single",                    status:"Scraping by"},
+    {cash:5000,    home:"Shared flat",        car:"1998 Corsa",         partner:"Talking to someone on Tinder",status:"Getting there"},
+    {cash:25000,   home:"One-bed flat",       car:"Second-hand Golf",   partner:"Girlfriend",                status:"Comfortable"},
+    {cash:100000,  home:"Two-bed house",      car:"New BMW 3 Series",   partner:"Serious girlfriend",        status:"Doing well"},
+    {cash:500000,  home:"Detached house",     car:"Porsche Cayenne",    partner:"Fiancée",                   status:"Made it"},
+    {cash:2000000, home:"Country manor",      car:"Bentley Continental",partner:"Wife",                      status:"Wealthy"},
+    {cash:10000000,home:"Penthouse, The Shard",car:"Rolls-Royce Ghost", partner:"Trophy wife",               status:"Rich"},
+    {cash:50000000,home:"Mayfair townhouse",  car:"Lamborghini + driver",partner:"Wife + mistress",          status:"Filthy rich"},
+    {cash:250000000,home:"Monaco apartment",  car:"Bugatti Chiron",     partner:"Supermodel wife",           status:"Elite"},
+    {cash:1000000000,home:"Private compound", car:"Helicopter",         partner:"Supermodel wife + yacht crew",status:"Untouchable"},
+    {cash:10000000000,home:"Private island",  car:"Private jet",        partner:"It's complicated",          status:"Above the law"},
+    {cash:100000000000,home:"Multiple islands",car:"Fleet of jets",     partner:"Who has time",              status:"Transcendent"},
+    {cash:1000000000000,home:"Secret volcano lair",car:"Space shuttle", partner:"The algorithm is your only companion",status:"Post-human"},
+  ];
+  let currentLife=LIFESTYLE[0];
+  for(const l of LIFESTYLE){if(S.totalCash>=l.cash)currentLife=l;else break}
+  const nextLife=LIFESTYLE[LIFESTYLE.indexOf(currentLife)+1];
+
+  if(S.totalCash>=500){
+    bh+=`<div class="building-row" style="border-top:2px solid #1a2e1a;margin-top:8px;padding-top:12px"><span class="b-icon">🏠</span><div class="b-info"><div class="b-name" style="color:#8a8">YOUR LIFE</div></div></div>`;
+    bh+=`<div class="building-row"><span class="b-icon">📍</span><div class="b-info"><div class="b-name">${currentLife.home}</div><div class="b-prod">Status: ${currentLife.status}</div></div></div>`;
+    bh+=`<div class="building-row"><span class="b-icon">🚗</span><div class="b-info"><div class="b-name">${currentLife.car}</div></div></div>`;
+    bh+=`<div class="building-row"><span class="b-icon">❤️</span><div class="b-info"><div class="b-name">${currentLife.partner}</div></div></div>`;
+    if(nextLife)bh+=`<div class="building-row"><span class="b-icon">⬆️</span><div class="b-info"><div class="b-name" style="color:#555">Next: ${nextLife.home} at ${$(nextLife.cash)}</div></div></div>`;
+  }
+
   document.getElementById("buildings").innerHTML=bh;
   document.getElementById("emptyMsg").style.display=bh?"none":"block";
 
