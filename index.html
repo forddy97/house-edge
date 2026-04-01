@@ -245,7 +245,7 @@ const BUILDINGS=[
   {id:"casino",n:"Casino Resort", icon:"🏛️",desc:"A destination, not just a venue.",   baseCost:5100000000,baseProd:130000,mw:0},
   {id:"server",n:"Server Farm",   icon:"🖥️",desc:"Process a million bets a minute.",   baseCost:75000000000,baseProd:900000,mw:0},
   {id:"island",n:"Private Island",icon:"🏝️",desc:"Where the real money is made.",      baseCost:1000000000000,baseProd:6000000,mw:0},
-  {id:"algo",  n:"The Algorithm",  icon:"👁️",desc:"You don't run the house. You are the house.",baseCost:14000000000000,baseProd:40000000,mw:0},
+  {id:"algo",  n:"The Algorithm",  icon:"👁️",desc:"You are the house.",baseCost:14000000000000,baseProd:40000000,mw:0},
 ];
 
 // ── Upgrades (Cookie Clicker has ~700, we need depth) ──────────
@@ -687,13 +687,24 @@ function render(){
   // Each milestone only changes ONE thing — staggered like real life
   const LIFESTYLE_STEPS=[
     {cash:0,        field:"status",  val:"Nobody"},
+    {cash:20,       field:"home",    val:"Sleeping on a mates sofa"},
+    {cash:50,       field:"outfit",  val:"Charity shop hoodie"},
+    {cash:100,      field:"car",     val:"Walking everywhere"},
+    {cash:180,      field:"status",  val:"Scraping by"},
+    {cash:300,      field:"partner", val:"Downloaded Tinder"},
     {cash:500,      field:"home",    val:"Bedsit above a chippy"},
+    {cash:800,      field:"watch",   val:"Casio F-91W"},
+    {cash:1200,     field:"holiday", val:"Day trip to Blackpool"},
     {cash:1500,     field:"outfit",  val:"Primark jeans"},
+    {cash:2000,     field:"followers",val:"47 followers"},
     {cash:2500,     field:"car",     val:"Rusty bicycle"},
-    {cash:4000,     field:"watch",   val:"Casio F-91W"},
+    {cash:3500,     field:"status",  val:"Getting somewhere"},
+    {cash:4000,     field:"watch",   val:"Casio F-91W (gold edition)"},
     {cash:5000,     field:"partner", val:"Talking to someone on Tinder"},
+    {cash:6500,     field:"outfit",  val:"Primark upgrade — new trainers"},
     {cash:8000,     field:"holiday", val:"Butlins weekend"},
     {cash:10000,    field:"home",    val:"Shared flat"},
+    {cash:12000,    field:"car",     val:"Mates old Fiesta. £300. Runs."},
     {cash:14000,    field:"followers",val:"200 followers"},
     {cash:18000,    field:"status",  val:"Getting there"},
     {cash:22000,    field:"outfit",  val:"Next sale rack"},
@@ -765,7 +776,7 @@ function render(){
     {cash:7000000000,field:"home",   val:"Private island"},
     {cash:8000000000,field:"followers",val:"Everyone knows your name"},
     {cash:10000000000,field:"car",   val:"Private jet"},
-    {cash:15000000000,field:"partner",val:"It's complicated"},
+    {cash:15000000000,field:"partner",val:"Its complicated"},
     {cash:20000000000,field:"status", val:"Above the law"},
     {cash:50000000000,field:"home",   val:"Multiple islands"},
     {cash:75000000000,field:"car",    val:"Fleet of jets"},
@@ -811,7 +822,7 @@ function render(){
   }
   const nextSteps=LIFESTYLE_STEPS.filter((s,i)=>i>lastStepIdx).slice(0,3);
 
-  if(S.totalCash>=500){
+  if(S.totalCash>=20){
     const fieldIcons={home:"📍",car:"🚗",partner:"❤️",status:"📊",watch:"⌚",outfit:"👔",holiday:"✈️",followers:"📱"};
     const fieldLabels={home:"Home",car:"Wheels",partner:"Love life",status:"Status",watch:"Watch",outfit:"Outfit",holiday:"Holiday",followers:"Social"};
     bh+=`<div class="building-row" style="border-top:2px solid #1a2e1a;margin-top:8px;padding-top:12px"><span class="b-icon">👤</span><div class="b-info"><div class="b-name" style="color:#8a8">YOUR LIFE — ${life.status}</div></div></div>`;
