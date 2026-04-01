@@ -202,53 +202,106 @@ const BUILDINGS=[
   {id:"algo",  n:"The Algorithm",  icon:"👁️",desc:"You don't run the house. You are the house.",baseCost:14000000000000,baseProd:40000000,mw:0},
 ];
 
-// ── Upgrades (like Cookie Clicker's upgrade icons) ─────────────
+// ── Upgrades (Cookie Clicker has ~700, we need depth) ──────────
 const UPGRADES=[
-  // Click power
-  // Click upgrades — unlock based on hands dealt
-  {id:"u1", n:"Marked Cards",     icon:"🃏",desc:"Hands pay twice as much.",     cost:50,    cat:"click", fx:S=>{S.clickMult*=2},    req:S=>S.hands>=10},
-  {id:"u2", n:"Loaded Dice",      icon:"🎲",desc:"Hands pay twice as much.",     cost:300,   cat:"click", fx:S=>{S.clickMult*=2},    req:S=>S.hands>=30},
-  {id:"u3", n:"Stacked Deck",     icon:"✨",desc:"Hands pay twice as much.",     cost:2000,  cat:"click", fx:S=>{S.clickMult*=2},    req:S=>S.hands>=100},
-  {id:"u4", n:"Cold Read",        icon:"🧠",desc:"Hands pay twice as much.",     cost:20000, cat:"click", fx:S=>{S.clickMult*=2},    req:S=>S.hands>=300},
-  {id:"u5", n:"The Trick",        icon:"🎩",desc:"Hands pay x5.",                cost:200000,cat:"click", fx:S=>{S.clickMult*=5},    req:S=>S.hands>=800},
-  {id:"u6", n:"Sleight of Hand",  icon:"🖐️",desc:"Hands pay x10.",               cost:5000000,cat:"click",fx:S=>{S.clickMult*=10},   req:S=>S.hands>=2000},
+  // ── Click upgrades (hands dealt milestones) ──
+  {id:"u1", n:"Marked Cards",     icon:"🃏",desc:"Hands pay twice as much.",     cost:50,     cat:"click",fx:S=>{S.clickMult*=2},   req:S=>S.hands>=10},
+  {id:"u2", n:"Loaded Dice",      icon:"🎲",desc:"Hands pay twice as much.",     cost:300,    cat:"click",fx:S=>{S.clickMult*=2},   req:S=>S.hands>=30},
+  {id:"u3", n:"Stacked Deck",     icon:"✨",desc:"Hands pay twice as much.",     cost:2000,   cat:"click",fx:S=>{S.clickMult*=2},   req:S=>S.hands>=100},
+  {id:"u4", n:"Cold Read",        icon:"🧠",desc:"Hands pay twice as much.",     cost:20000,  cat:"click",fx:S=>{S.clickMult*=2},   req:S=>S.hands>=300},
+  {id:"u5", n:"The Trick",        icon:"🎩",desc:"Hands pay x5.",                cost:200000, cat:"click",fx:S=>{S.clickMult*=5},   req:S=>S.hands>=800},
+  {id:"u6", n:"Sleight of Hand",  icon:"🖐️",desc:"Hands pay x10.",               cost:5000000,cat:"click",fx:S=>{S.clickMult*=10},  req:S=>S.hands>=2000},
+  {id:"u7", n:"Second Nature",    icon:"♠️",desc:"Hands pay x10.",               cost:100000000,cat:"click",fx:S=>{S.clickMult*=10},req:S=>S.hands>=5000},
+  {id:"u8", n:"One With The Cards",icon:"🌀",desc:"Hands pay x100.",             cost:50000000000,cat:"click",fx:S=>{S.clickMult*=100},req:S=>S.hands>=10000},
 
-  // Building boosters — unlock based on owning N of that type
-  {id:"d1", n:"Faster Shuffle",   icon:"⚡",desc:"Dealers are twice as efficient.", cost:150,   cat:"building",target:"dealer",mult:2, req:S=>own("dealer")>=1},
-  {id:"d2", n:"Card Counting",    icon:"🔢",desc:"Dealers are twice as efficient.", cost:1500,  cat:"building",target:"dealer",mult:2, req:S=>own("dealer")>=5},
-  {id:"d3", n:"Second Shift",     icon:"🌙",desc:"Dealers are twice as efficient.", cost:15000, cat:"building",target:"dealer",mult:2, req:S=>own("dealer")>=25},
-  {id:"d4", n:"24/7 Operation",   icon:"🔄",desc:"Dealers are twice as efficient.", cost:150000,cat:"building",target:"dealer",mult:2, req:S=>own("dealer")>=50},
+  // ── Synergy upgrades (own X of building A + Y of building B) ──
+  {id:"sy1",n:"Dealers serve Drinks",icon:"🍹",desc:"Dealers and Bars each +50%.",cost:80000,    cat:"synergy",targets:["dealer","bar"],mult:1.5, req:S=>own("dealer")>=10&&own("bar")>=1},
+  {id:"sy2",n:"Bouncers at Tables", icon:"💪",desc:"Bouncers and Tables each +50%.",cost:20000, cat:"synergy",targets:["bouncer","table"],mult:1.5,req:S=>own("bouncer")>=5&&own("table")>=5},
+  {id:"sy3",n:"FOBTs in Bars",      icon:"🍺",desc:"FOBTs and Bars each +100%.",  cost:2000000, cat:"synergy",targets:["fobt","bar"],mult:2,    req:S=>own("fobt")>=5&&own("bar")>=5},
+  {id:"sy4",n:"Online meets Offline",icon:"🔗",desc:"Online and Chains each +100%.",cost:500000000,cat:"synergy",targets:["online","chain"],mult:2,req:S=>own("online")>=5&&own("chain")>=1},
+  {id:"sy5",n:"VIP goes Digital",    icon:"💻",desc:"Casinos and Servers each +100%.",cost:50000000000,cat:"synergy",targets:["casino","server"],mult:2,req:S=>own("casino")>=1&&own("server")>=1},
+  {id:"sy6",n:"Island Algorithms",   icon:"🏝️",desc:"Islands and Algorithm each x3.",cost:30000000000000,cat:"synergy",targets:["island","algo"],mult:3,req:S=>own("island")>=1&&own("algo")>=1},
 
-  {id:"t1", n:"Green Felt",       icon:"🟢",desc:"Tables are twice as productive.",  cost:1000,  cat:"building",target:"table",mult:2,  req:S=>own("table")>=1},
-  {id:"t2", n:"VIP Tables",       icon:"💎",desc:"Tables are twice as productive.",  cost:5000,  cat:"building",target:"table",mult:2,  req:S=>own("table")>=5},
-  {id:"t3", n:"Table Service",    icon:"🍾",desc:"Tables are twice as productive.",  cost:50000, cat:"building",target:"table",mult:2,  req:S=>own("table")>=25},
+  // ── Dealer upgrades (1, 5, 25, 50, 100, 150, 200) ──
+  {id:"d1", n:"Faster Shuffle",   icon:"⚡",desc:"Dealers are twice as efficient.",  cost:150,      cat:"building",target:"dealer",mult:2,req:S=>own("dealer")>=1},
+  {id:"d2", n:"Card Counting",    icon:"🔢",desc:"Dealers are twice as efficient.",  cost:1500,     cat:"building",target:"dealer",mult:2,req:S=>own("dealer")>=5},
+  {id:"d3", n:"Second Shift",     icon:"🌙",desc:"Dealers are twice as efficient.",  cost:15000,    cat:"building",target:"dealer",mult:2,req:S=>own("dealer")>=25},
+  {id:"d4", n:"24/7 Operation",   icon:"🔄",desc:"Dealers are twice as efficient.",  cost:150000,   cat:"building",target:"dealer",mult:2,req:S=>own("dealer")>=50},
+  {id:"d5", n:"Dealer Academy",   icon:"🎓",desc:"Dealers are twice as efficient.",  cost:15000000, cat:"building",target:"dealer",mult:2,req:S=>own("dealer")>=100},
+  {id:"d6", n:"Robot Dealers",    icon:"🤖",desc:"Dealers are twice as efficient.",  cost:1500000000,cat:"building",target:"dealer",mult:2,req:S=>own("dealer")>=150},
+  {id:"d7", n:"Dealer Singularity",icon:"♾️",desc:"Dealers are twice as efficient.", cost:150000000000,cat:"building",target:"dealer",mult:2,req:S=>own("dealer")>=200},
 
-  {id:"b1", n:"Velvet Rope",      icon:"🚧",desc:"Bouncers are twice as effective.", cost:5500,  cat:"building",target:"bouncer",mult:2,req:S=>own("bouncer")>=1},
-  {id:"b2", n:"Guest List",       icon:"📋",desc:"Bouncers are twice as effective.", cost:55000, cat:"building",target:"bouncer",mult:2,req:S=>own("bouncer")>=5},
-  {id:"b3", n:"VIP Only",         icon:"🎭",desc:"Bouncers are twice as effective.", cost:550000,cat:"building",target:"bouncer",mult:2,req:S=>own("bouncer")>=25},
+  // ── Table upgrades (1, 5, 25, 50, 100, 150) ──
+  {id:"t1", n:"Green Felt",       icon:"🟢",desc:"Tables are twice as productive.",  cost:1000,     cat:"building",target:"table",mult:2,req:S=>own("table")>=1},
+  {id:"t2", n:"VIP Tables",       icon:"💎",desc:"Tables are twice as productive.",  cost:5000,     cat:"building",target:"table",mult:2,req:S=>own("table")>=5},
+  {id:"t3", n:"Table Service",    icon:"🍾",desc:"Tables are twice as productive.",  cost:50000,    cat:"building",target:"table",mult:2,req:S=>own("table")>=25},
+  {id:"t4", n:"Heated Seats",     icon:"🔥",desc:"Tables are twice as productive.",  cost:5000000,  cat:"building",target:"table",mult:2,req:S=>own("table")>=50},
+  {id:"t5", n:"Holographic Tables",icon:"🌈",desc:"Tables are twice as productive.", cost:500000000,cat:"building",target:"table",mult:2,req:S=>own("table")>=100},
+  {id:"t6", n:"Infinite Tables",  icon:"∞", desc:"Tables are twice as productive.",  cost:50000000000,cat:"building",target:"table",mult:2,req:S=>own("table")>=150},
 
-  {id:"br1",n:"Top Shelf",        icon:"🥃",desc:"Bars are twice as productive.",    cost:60000, cat:"building",target:"bar",mult:2,   req:S=>own("bar")>=1},
-  {id:"br2",n:"Happy Hour",       icon:"🎉",desc:"Bars are twice as productive.",    cost:600000,cat:"building",target:"bar",mult:2,   req:S=>own("bar")>=5},
-  {id:"br3",n:"Open Bar",         icon:"🍸",desc:"Bars are twice as productive.",    cost:6000000,cat:"building",target:"bar",mult:2,  req:S=>own("bar")>=25},
+  // ── Bouncer upgrades (1, 5, 25, 50, 100) ──
+  {id:"b1", n:"Velvet Rope",      icon:"🚧",desc:"Bouncers are twice as effective.", cost:5500,     cat:"building",target:"bouncer",mult:2,req:S=>own("bouncer")>=1},
+  {id:"b2", n:"Guest List",       icon:"📋",desc:"Bouncers are twice as effective.", cost:55000,    cat:"building",target:"bouncer",mult:2,req:S=>own("bouncer")>=5},
+  {id:"b3", n:"VIP Only",         icon:"🎭",desc:"Bouncers are twice as effective.", cost:550000,   cat:"building",target:"bouncer",mult:2,req:S=>own("bouncer")>=25},
+  {id:"b4", n:"Private Security",  icon:"🕶️",desc:"Bouncers are twice as effective.",cost:55000000, cat:"building",target:"bouncer",mult:2,req:S=>own("bouncer")>=50},
+  {id:"b5", n:"Military Grade",    icon:"🎖️",desc:"Bouncers are twice as effective.",cost:5500000000,cat:"building",target:"bouncer",mult:2,req:S=>own("bouncer")>=100},
 
-  {id:"f1", n:"Rigged Reels",     icon:"🎯",desc:"FOBTs are twice as productive.",   cost:650000,cat:"building",target:"fobt",mult:2,  req:S=>own("fobt")>=1},
-  {id:"f2", n:"Max Bet Button",   icon:"💰",desc:"FOBTs are twice as productive.",   cost:6500000,cat:"building",target:"fobt",mult:2, req:S=>own("fobt")>=5},
+  // ── Bar upgrades (1, 5, 25, 50, 100) ──
+  {id:"br1",n:"Top Shelf",        icon:"🥃",desc:"Bars are twice as productive.",    cost:60000,    cat:"building",target:"bar",mult:2,req:S=>own("bar")>=1},
+  {id:"br2",n:"Happy Hour",       icon:"🎉",desc:"Bars are twice as productive.",    cost:600000,   cat:"building",target:"bar",mult:2,req:S=>own("bar")>=5},
+  {id:"br3",n:"Open Bar",         icon:"🍸",desc:"Bars are twice as productive.",    cost:6000000,  cat:"building",target:"bar",mult:2,req:S=>own("bar")>=25},
+  {id:"br4",n:"Cocktail Robots",  icon:"🦾",desc:"Bars are twice as productive.",    cost:600000000,cat:"building",target:"bar",mult:2,req:S=>own("bar")>=50},
+  {id:"br5",n:"Endless Pour",     icon:"🌊",desc:"Bars are twice as productive.",    cost:60000000000,cat:"building",target:"bar",mult:2,req:S=>own("bar")>=100},
 
-  {id:"fl1",n:"Penthouse Suite",  icon:"🌃",desc:"Floors are twice as productive.",  cost:7000000,cat:"building",target:"floor",mult:2,req:S=>own("floor")>=1},
-  {id:"fl2",n:"Sky Lounge",       icon:"🌆",desc:"Floors are twice as productive.",  cost:70000000,cat:"building",target:"floor",mult:2,req:S=>own("floor")>=5},
+  // ── FOBT upgrades (1, 5, 25, 50, 100) ──
+  {id:"f1", n:"Rigged Reels",     icon:"🎯",desc:"FOBTs are twice as productive.",   cost:650000,   cat:"building",target:"fobt",mult:2,req:S=>own("fobt")>=1},
+  {id:"f2", n:"Max Bet Button",   icon:"💰",desc:"FOBTs are twice as productive.",   cost:6500000,  cat:"building",target:"fobt",mult:2,req:S=>own("fobt")>=5},
+  {id:"f3", n:"Addictive Sounds", icon:"🔊",desc:"FOBTs are twice as productive.",   cost:65000000, cat:"building",target:"fobt",mult:2,req:S=>own("fobt")>=25},
+  {id:"f4", n:"Near Miss Engine", icon:"😰",desc:"FOBTs are twice as productive.",   cost:6500000000,cat:"building",target:"fobt",mult:2,req:S=>own("fobt")>=50},
+  {id:"f5", n:"Dopamine Maximiser",icon:"🧪",desc:"FOBTs are twice as productive.",  cost:650000000000,cat:"building",target:"fobt",mult:2,req:S=>own("fobt")>=100},
 
-  {id:"o1", n:"SSL Certificate",  icon:"🔒",desc:"Sites are twice as productive.",cost:100000000,cat:"building",target:"online",mult:2,req:S=>own("online")>=1},
-  {id:"o2", n:"Live Streaming",   icon:"📺",desc:"Sites are twice as productive.",cost:1000000000,cat:"building",target:"online",mult:2,req:S=>own("online")>=5},
+  // ── Floor upgrades (1, 5, 25, 50, 100) ──
+  {id:"fl1",n:"Penthouse Suite",  icon:"🌃",desc:"Floors are twice as productive.",  cost:7000000,  cat:"building",target:"floor",mult:2,req:S=>own("floor")>=1},
+  {id:"fl2",n:"Sky Lounge",       icon:"🌆",desc:"Floors are twice as productive.",  cost:70000000, cat:"building",target:"floor",mult:2,req:S=>own("floor")>=5},
+  {id:"fl3",n:"Infinity Pool",    icon:"🏊",desc:"Floors are twice as productive.",  cost:700000000,cat:"building",target:"floor",mult:2,req:S=>own("floor")>=25},
+  {id:"fl4",n:"Helipad",          icon:"🚁",desc:"Floors are twice as productive.",  cost:70000000000,cat:"building",target:"floor",mult:2,req:S=>own("floor")>=50},
 
-  {id:"ch1",n:"Franchise Model",  icon:"📊",desc:"Chains are twice as productive.", cost:1650000000,cat:"building",target:"chain",mult:2,req:S=>own("chain")>=1},
+  // ── Online upgrades (1, 5, 25, 50) ──
+  {id:"o1", n:"SSL Certificate",  icon:"🔒",desc:"Sites are twice as productive.",   cost:100000000,cat:"building",target:"online",mult:2,req:S=>own("online")>=1},
+  {id:"o2", n:"Live Streaming",   icon:"📺",desc:"Sites are twice as productive.",   cost:1000000000,cat:"building",target:"online",mult:2,req:S=>own("online")>=5},
+  {id:"o3", n:"Mobile App",       icon:"📱",desc:"Sites are twice as productive.",   cost:10000000000,cat:"building",target:"online",mult:2,req:S=>own("online")>=25},
+  {id:"o4", n:"AI Chat Support",  icon:"💬",desc:"Sites are twice as productive.",   cost:100000000000,cat:"building",target:"online",mult:2,req:S=>own("online")>=50},
 
-  {id:"ca1",n:"Whale Programme",  icon:"🐋",desc:"Resorts are twice as productive.",cost:25500000000,cat:"building",target:"casino",mult:2,req:S=>own("casino")>=1},
+  // ── Chain upgrades (1, 5, 25) ──
+  {id:"ch1",n:"Franchise Model",  icon:"📊",desc:"Chains are twice as productive.",  cost:1650000000,cat:"building",target:"chain",mult:2,req:S=>own("chain")>=1},
+  {id:"ch2",n:"National Brand",   icon:"🇬🇧",desc:"Chains are twice as productive.", cost:16500000000,cat:"building",target:"chain",mult:2,req:S=>own("chain")>=5},
+  {id:"ch3",n:"International",    icon:"✈️",desc:"Chains are twice as productive.",  cost:165000000000,cat:"building",target:"chain",mult:2,req:S=>own("chain")>=25},
 
-  {id:"sv1",n:"Quantum Computing",icon:"⚛️",desc:"Servers are twice as productive.",cost:375000000000,cat:"building",target:"server",mult:2,req:S=>own("server")>=1},
+  // ── Casino upgrades (1, 5, 25) ──
+  {id:"ca1",n:"Whale Programme",  icon:"🐋",desc:"Resorts are twice as productive.", cost:25500000000,cat:"building",target:"casino",mult:2,req:S=>own("casino")>=1},
+  {id:"ca2",n:"Michelin Restaurant",icon:"⭐",desc:"Resorts are twice as productive.",cost:255000000000,cat:"building",target:"casino",mult:2,req:S=>own("casino")>=5},
+  {id:"ca3",n:"Celebrity Host",   icon:"🌟",desc:"Resorts are twice as productive.", cost:2550000000000,cat:"building",target:"casino",mult:2,req:S=>own("casino")>=25},
 
-  {id:"is1",n:"Tax Haven",        icon:"🏦",desc:"Islands are twice as productive.",cost:5000000000000,cat:"building",target:"island",mult:2,req:S=>own("island")>=1},
+  // ── Server upgrades (1, 5) ──
+  {id:"sv1",n:"Quantum Computing",icon:"⚛️",desc:"Servers are twice as productive.", cost:375000000000,cat:"building",target:"server",mult:2,req:S=>own("server")>=1},
+  {id:"sv2",n:"Neural Network",   icon:"🧠",desc:"Servers are twice as productive.", cost:3750000000000,cat:"building",target:"server",mult:2,req:S=>own("server")>=5},
 
+  // ── Island upgrades (1, 5) ──
+  {id:"is1",n:"Tax Haven",        icon:"🏦",desc:"Islands are twice as productive.", cost:5000000000000,cat:"building",target:"island",mult:2,req:S=>own("island")>=1},
+  {id:"is2",n:"Sovereign Nation", icon:"🏴",desc:"Islands are twice as productive.", cost:50000000000000,cat:"building",target:"island",mult:2,req:S=>own("island")>=5},
+
+  // ── Algorithm upgrades (1, 5) ──
   {id:"al1",n:"Sentient AI",      icon:"🤖",desc:"The Algorithm is twice as powerful.",cost:70000000000000,cat:"building",target:"algo",mult:2,req:S=>own("algo")>=1},
+  {id:"al2",n:"Omniscience",      icon:"👁️",desc:"The Algorithm is twice as powerful.",cost:700000000000000,cat:"building",target:"algo",mult:2,req:S=>own("algo")>=5},
+
+  // ── Milestone upgrades (total buildings owned) ──
+  {id:"m1", n:"Getting Started",  icon:"📈",desc:"All buildings +10%. Own 10 total.",cost:500,     cat:"global",mult:1.1,req:S=>{let t=0;for(const b of BUILDINGS)t+=own(b.id);return t>=10}},
+  {id:"m2", n:"Small Operation",  icon:"📈",desc:"All buildings +10%. Own 25 total.",cost:5000,    cat:"global",mult:1.1,req:S=>{let t=0;for(const b of BUILDINGS)t+=own(b.id);return t>=25}},
+  {id:"m3", n:"Growing Empire",   icon:"📈",desc:"All buildings +15%. Own 50 total.",cost:50000,   cat:"global",mult:1.15,req:S=>{let t=0;for(const b of BUILDINGS)t+=own(b.id);return t>=50}},
+  {id:"m4", n:"Serious Player",   icon:"📈",desc:"All buildings +15%. Own 100 total.",cost:500000, cat:"global",mult:1.15,req:S=>{let t=0;for(const b of BUILDINGS)t+=own(b.id);return t>=100}},
+  {id:"m5", n:"Industry Giant",   icon:"📈",desc:"All buildings +20%. Own 200 total.",cost:50000000,cat:"global",mult:1.2,req:S=>{let t=0;for(const b of BUILDINGS)t+=own(b.id);return t>=200}},
+  {id:"m6", n:"Monopoly",         icon:"📈",desc:"All buildings +25%. Own 500 total.",cost:50000000000,cat:"global",mult:1.25,req:S=>{let t=0;for(const b of BUILDINGS)t+=own(b.id);return t>=500}},
+  {id:"m7", n:"World Domination",  icon:"🌍",desc:"All buildings +50%. Own 1000 total.",cost:50000000000000,cat:"global",mult:1.5,req:S=>{let t=0;for(const b of BUILDINGS)t+=own(b.id);return t>=1000}},
 ];
 
 // ── State ──────────────────────────────────────────────────────
@@ -263,7 +316,7 @@ const DEF={
   // Daily
   lastDaily:0,dailyStreak:0,
   // Prestige
-  prestiges:0,pMult:1,chips:0,pUps:[],pClickMult:1,whaleFreq:1,startCash:0,startDealers:0,startTables:0,
+  prestiges:0,pMult:1,chips:0,pUps:[],pClickMult:1,whaleFreq:1,startCash:0,startDealers:0,startTables:0,globalMult:1,
   lt:Date.now(),
   tab:"buildings"
 };
@@ -279,7 +332,7 @@ function bMult(id){return S.buildingMult[id]||1}
 function bCost(b){return Math.floor(b.baseCost*Math.pow(1.15,own(b.id)))}
 
 // ── Production ─────────────────────────────────────────────────
-function bProd(b){return b.baseProd*bMult(b.id)*S.pMult}
+function bProd(b){return b.baseProd*bMult(b.id)*S.pMult*(S.globalMult||1)}
 function totalCPS(){
   let t=0;
   for(const b of BUILDINGS){const n=own(b.id);if(n>0)t+=bProd(b)*n}
@@ -327,6 +380,8 @@ function buyU(id){
   S.cash-=u.cost;S.upgrades.push(id);
   if(u.cat==="click")u.fx(S);
   if(u.cat==="building"){S.buildingMult[u.target]=(S.buildingMult[u.target]||1)*u.mult}
+  if(u.cat==="synergy"){for(const t of u.targets)S.buildingMult[t]=(S.buildingMult[t]||1)*u.mult}
+  if(u.cat==="global"){S.globalMult=(S.globalMult||1)*u.mult}
   sBuy();tick(u.n+" researched.");sv();render();
 }
 
@@ -437,12 +492,14 @@ function doPrestige(){
   const keepStartCash=S.startCash||0;
   const keepStartDealers=S.startDealers||0;
   const keepStartTables=S.startTables||0;
+  const keepGlobalMult=S.globalMult||1;
 
   Object.assign(S,{...DEF});
   S.chips=keepChips;S.pUps=keepPUps;S.prestiges=keepP;S.pMult=keepPM;
   S.lastDaily=keepD;S.dailyStreak=keepDS;S.whalesCaught=keepW;S.bestStreak=keepBS;
   S.pClickMult=keepPClick;S.whaleFreq=keepWhaleFreq;
   S.startCash=keepStartCash;S.startDealers=keepStartDealers;S.startTables=keepStartTables;
+  S.globalMult=keepGlobalMult;
 
   // Apply prestige start bonuses
   S.cash=S.startCash||0;S.totalCash=S.cash;
@@ -466,7 +523,68 @@ function buyPrestigeUp(id){
 function sPrestige(){tn(440,.15,"sine",.12);setTimeout(()=>tn(554,.15,"sine",.1),100);setTimeout(()=>tn(659,.15,"sine",.1),200);setTimeout(()=>tn(880,.25,"sine",.14),300)}
 
 // ── Ticker ─────────────────────────────────────────────────────
-const TIPS=["The house always wins. Mostly.","A fool and his money are soon parted.","Know when to hold 'em.","The odds are in your favour. Slightly.","Every seat filled is money earned.","The bigger the floor, the bigger the take.","You can't lose if you own the table.","Fortune favours the house.","Someone out there is about to have a very bad night.","The game is rigged. You rigged it.","They come for the thrill. You come for the margin."];
+const TIPS=[
+"The house always wins. Mostly.",
+"A fool and his money are soon parted.",
+"Know when to hold 'em.",
+"The odds are in your favour. Slightly.",
+"Every seat filled is money earned.",
+"The bigger the floor, the bigger the take.",
+"You can't lose if you own the table.",
+"Fortune favours the house.",
+"Someone out there is about to have a very bad night.",
+"The game is rigged. You rigged it.",
+"They come for the thrill. You come for the margin.",
+"Another round, another pound.",
+"The chips don't lie.",
+"Somewhere, a punter just doubled down on a bad hand.",
+"Your dealers don't blink. Neither do you.",
+"The only sure bet is the one you don't make.",
+"In this business, patience pays compound interest.",
+"A whale approaches...",
+"The roulette wheel has no memory. Your bank account does.",
+"Someone just put their car keys on the table.",
+"News: Local man convinced this is his lucky night.",
+"A wise man once said: never gamble. Then he built a casino.",
+"The slots are singing tonight.",
+"Three cherries. Someone's happy. You're happier.",
+"The bar tab is running. So is your margin.",
+"Another floor, another fortune.",
+"They call it gambling. You call it business.",
+"The house doesn't gamble. The house calculates.",
+"A dealer just winked at camera four.",
+"Someone left a very generous tip.",
+"The pit boss reports all tables running smooth.",
+"A regular just walked in. You can set your watch by them.",
+"The valet is parking a Bentley. Good sign.",
+"Security removed a card counter. Business as usual.",
+"The buffet is full. The tables will be next.",
+"It's not about the cards. It's about the rake.",
+"Every transaction has a winner. It's always you.",
+"The neon never sleeps.",
+"Somewhere, someone just said 'just one more hand.'",
+"Your accountant called. He sounds happy.",
+"The house edge is a beautiful thing.",
+"Stack them high. Cash them higher.",
+"The odds were ever in your favour.",
+"A group of friends just sat down. They won't be friends later.",
+"The CCTV sees everything. Everything.",
+"Another night, another million hands dealt.",
+"The coffee machine in the break room is broken. Again.",
+"A tourist just changed £10,000 into chips.",
+"The cleaners found £50 under a slot machine.",
+"Someone's winning streak just ended. Yours didn't.",
+"The algorithm is learning. Always learning.",
+"Your empire generates wealth while you sleep.",
+"They come for the dream. You sell the dream.",
+"The carpet is ugly on purpose. It keeps them looking up. At the tables.",
+"Free drinks keep them at the tables. Smart investment.",
+"A high roller just requested a private room.",
+"The mathematics of misery. Your prosperity.",
+"Another happy customer. Well, happy-ish.",
+"The server farm just processed its billionth bet.",
+"They don't know when to stop. That's the business model.",
+];
 function tick(msg){
   logs.push(msg);if(logs.length>40)logs.shift();
   document.getElementById("ticker").textContent=msg;
@@ -572,7 +690,7 @@ function loop(){
   rT+=dt;if(rT>500){rT=0;render()}
   sT+=dt;if(sT>15000){sT=0;sv()}
   // Random ticker tips
-  if(Math.random()<.001)document.getElementById("ticker").textContent=TIPS[Math.floor(Math.random()*TIPS.length)];
+  if(Math.random()<.003)document.getElementById("ticker").textContent=TIPS[Math.floor(Math.random()*TIPS.length)];
   requestAnimationFrame(loop);
 }
 
