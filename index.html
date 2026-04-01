@@ -626,36 +626,87 @@ function render(){
     bh+=`<div class="building-row"><span class="b-icon">${b.icon}</span><div class="b-info"><div class="b-name">${b.n}</div><div class="b-prod">each producing ${$(bProd(b))}, total ${$(prod)}</div></div><span class="b-count">${n}</span></div>`;
   }
   // Lifestyle panel
-  const LIFESTYLE=[
-    {cash:0,       home:"Mum's spare room",  car:"Bus pass",           partner:"Single",                    status:"Nobody"},
-    {cash:500,     home:"Bedsit above a chippy",car:"Rusty bicycle",   partner:"Single",                    status:"Scraping by"},
-    {cash:5000,    home:"Shared flat",        car:"1998 Corsa",         partner:"Talking to someone on Tinder",status:"Getting there"},
-    {cash:25000,   home:"One-bed flat",       car:"Second-hand Golf",   partner:"Girlfriend",                status:"Comfortable"},
-    {cash:100000,  home:"Two-bed house",      car:"New BMW 3 Series",   partner:"Serious girlfriend",        status:"Doing well"},
-    {cash:500000,  home:"Detached house",     car:"Porsche Cayenne",    partner:"Fiancée",                   status:"Made it"},
-    {cash:2000000, home:"Country manor",      car:"Bentley Continental",partner:"Wife",                      status:"Wealthy"},
-    {cash:10000000,home:"Penthouse, The Shard",car:"Rolls-Royce Ghost", partner:"Trophy wife",               status:"Rich"},
-    {cash:50000000,home:"Mayfair townhouse",  car:"Lamborghini + driver",partner:"Wife + mistress",          status:"Filthy rich"},
-    {cash:250000000,home:"Monaco apartment",  car:"Bugatti Chiron",     partner:"Supermodel wife",           status:"Elite"},
-    {cash:1000000000,home:"Private compound", car:"Helicopter",         partner:"Supermodel wife + yacht crew",status:"Untouchable"},
-    {cash:10000000000,home:"Private island",  car:"Private jet",        partner:"It's complicated",          status:"Above the law"},
-    {cash:100000000000,home:"Multiple islands",car:"Fleet of jets",     partner:"Who has time",              status:"Transcendent"},
-    {cash:1000000000000,home:"Secret volcano lair",car:"Space shuttle", partner:"The algorithm is your only companion",status:"Post-human"},
+  // Each milestone only changes ONE thing — staggered like real life
+  const LIFESTYLE_STEPS=[
+    {cash:0,        field:"status",  val:"Nobody"},
+    {cash:500,      field:"home",    val:"Bedsit above a chippy"},
+    {cash:2000,     field:"car",     val:"Rusty bicycle"},
+    {cash:5000,     field:"partner", val:"Talking to someone on Tinder"},
+    {cash:10000,    field:"home",    val:"Shared flat"},
+    {cash:18000,    field:"status",  val:"Getting there"},
+    {cash:25000,    field:"car",     val:"1998 Corsa"},
+    {cash:40000,    field:"partner", val:"Girlfriend"},
+    {cash:60000,    field:"home",    val:"One-bed flat"},
+    {cash:80000,    field:"status",  val:"Comfortable"},
+    {cash:100000,   field:"car",     val:"Second-hand Golf"},
+    {cash:150000,   field:"partner", val:"Serious girlfriend"},
+    {cash:250000,   field:"home",    val:"Two-bed house"},
+    {cash:400000,   field:"car",     val:"New BMW 3 Series"},
+    {cash:500000,   field:"status",  val:"Doing well"},
+    {cash:750000,   field:"partner", val:"Fiancée"},
+    {cash:1000000,  field:"home",    val:"Detached house"},
+    {cash:1500000,  field:"car",     val:"Porsche Cayenne"},
+    {cash:2000000,  field:"status",  val:"Made it"},
+    {cash:3000000,  field:"partner", val:"Wife"},
+    {cash:5000000,  field:"home",    val:"Country manor"},
+    {cash:7000000,  field:"car",     val:"Bentley Continental"},
+    {cash:10000000, field:"status",  val:"Wealthy"},
+    {cash:15000000, field:"home",    val:"Penthouse, The Shard"},
+    {cash:20000000, field:"car",     val:"Rolls-Royce Ghost"},
+    {cash:30000000, field:"partner", val:"Trophy wife"},
+    {cash:50000000, field:"status",  val:"Rich"},
+    {cash:75000000, field:"home",    val:"Mayfair townhouse"},
+    {cash:100000000,field:"car",     val:"Lamborghini + driver"},
+    {cash:150000000,field:"partner", val:"Wife + mistress"},
+    {cash:250000000,field:"status",  val:"Filthy rich"},
+    {cash:350000000,field:"home",    val:"Monaco apartment"},
+    {cash:500000000,field:"car",     val:"Bugatti Chiron"},
+    {cash:750000000,field:"partner", val:"Supermodel wife"},
+    {cash:1000000000,field:"status", val:"Elite"},
+    {cash:1500000000,field:"home",   val:"Private compound"},
+    {cash:2000000000,field:"car",    val:"Helicopter"},
+    {cash:3000000000,field:"partner",val:"Supermodel wife + yacht crew"},
+    {cash:5000000000,field:"status", val:"Untouchable"},
+    {cash:7000000000,field:"home",   val:"Private island"},
+    {cash:10000000000,field:"car",   val:"Private jet"},
+    {cash:15000000000,field:"partner",val:"It's complicated"},
+    {cash:20000000000,field:"status", val:"Above the law"},
+    {cash:50000000000,field:"home",   val:"Multiple islands"},
+    {cash:75000000000,field:"car",    val:"Fleet of jets"},
+    {cash:100000000000,field:"partner",val:"Who has time"},
+    {cash:200000000000,field:"status", val:"Transcendent"},
+    {cash:500000000000,field:"home",   val:"Secret volcano lair"},
+    {cash:750000000000,field:"car",    val:"Space shuttle"},
+    {cash:1000000000000,field:"partner",val:"The algorithm is your only companion"},
+    {cash:1000000000000,field:"status", val:"Post-human"},
   ];
+
+  // Build current life state by replaying all steps
+  const life={home:"Mum's spare room",car:"Bus pass",partner:"Single",status:"Nobody"};
+  let lastStepIdx=-1;
+  for(let i=0;i<LIFESTYLE_STEPS.length;i++){
+    if(S.totalCash>=LIFESTYLE_STEPS[i].cash){life[LIFESTYLE_STEPS[i].field]=LIFESTYLE_STEPS[i].val;lastStepIdx=i}
+  }
+  // Find next 2 steps
+  const nextSteps=LIFESTYLE_STEPS.filter((s,i)=>i>lastStepIdx).slice(0,2);
   let currentLife=LIFESTYLE[0];
   for(const l of LIFESTYLE){if(S.totalCash>=l.cash)currentLife=l;else break}
   const nextLife=LIFESTYLE[LIFESTYLE.indexOf(currentLife)+1];
 
   if(S.totalCash>=500){
-    const lifeIdx=LIFESTYLE.indexOf(currentLife);
-    const next1=LIFESTYLE[lifeIdx+1];
-    const next2=LIFESTYLE[lifeIdx+2];
-    bh+=`<div class="building-row" style="border-top:2px solid #1a2e1a;margin-top:8px;padding-top:12px"><span class="b-icon">🏠</span><div class="b-info"><div class="b-name" style="color:#8a8">YOUR LIFE — ${currentLife.status}</div></div></div>`;
-    bh+=`<div class="building-row"><span class="b-icon">📍</span><div class="b-info"><div class="b-name">${currentLife.home}</div></div></div>`;
-    bh+=`<div class="building-row"><span class="b-icon">🚗</span><div class="b-info"><div class="b-name">${currentLife.car}</div></div></div>`;
-    bh+=`<div class="building-row"><span class="b-icon">❤️</span><div class="b-info"><div class="b-name">${currentLife.partner}</div></div></div>`;
-    if(next1)bh+=`<div class="building-row" style="opacity:.55"><span class="b-icon">⬆️</span><div class="b-info"><div class="b-name">${next1.home} · ${next1.car} · ${next1.partner}</div><div class="b-prod">at ${$(next1.cash)} total earned</div></div></div>`;
-    if(next2)bh+=`<div class="building-row" style="opacity:.3"><span class="b-icon">🔒</span><div class="b-info"><div class="b-name">${next2.home} · ${next2.car} · ${next2.partner}</div><div class="b-prod">at ${$(next2.cash)} total earned</div></div></div>`;
+    const fieldIcons={home:"📍",car:"🚗",partner:"❤️",status:"📊"};
+    const fieldLabels={home:"Home",car:"Wheels",partner:"Love life",status:"Status"};
+    bh+=`<div class="building-row" style="border-top:2px solid #1a2e1a;margin-top:8px;padding-top:12px"><span class="b-icon">👤</span><div class="b-info"><div class="b-name" style="color:#8a8">YOUR LIFE — ${life.status}</div></div></div>`;
+    bh+=`<div class="building-row"><span class="b-icon">📍</span><div class="b-info"><div class="b-name">${life.home}</div></div></div>`;
+    bh+=`<div class="building-row"><span class="b-icon">🚗</span><div class="b-info"><div class="b-name">${life.car}</div></div></div>`;
+    bh+=`<div class="building-row"><span class="b-icon">❤️</span><div class="b-info"><div class="b-name">${life.partner}</div></div></div>`;
+    for(let i=0;i<nextSteps.length;i++){
+      const ns=nextSteps[i];
+      const icon=fieldIcons[ns.field]||"⬆️";
+      const label=fieldLabels[ns.field]||ns.field;
+      const opacity=i===0?.55:.3;
+      bh+=`<div class="building-row" style="opacity:${opacity}"><span class="b-icon">${i===0?"⬆️":"🔒"}</span><div class="b-info"><div class="b-name">${label}: ${ns.val}</div><div class="b-prod">at ${$(ns.cash)} total earned</div></div></div>`;
+    }
   }
 
   document.getElementById("buildings").innerHTML=bh;
