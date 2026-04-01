@@ -768,7 +768,8 @@ function render(){
   // Upgrade badge on tab
   const affordableU=availU.filter(u=>S.cash>=u.cost);
   const tabUp=document.getElementById("tabUpgrades");
-  if(tabUp)tabUp.innerHTML=availU.length>0?"Upgrades <span class='tab-badge'>"+availU.length+"</span>":"Upgrades";
+  const buyableU=availU.filter(u=>S.cash>=u.cost).length;
+  if(tabUp)tabUp.innerHTML=buyableU>0?"Upgrades <span class='tab-badge'>"+buyableU+"</span>":"Upgrades";
   const tabPr=document.getElementById("tabPrestige");
   if(tabPr&&canPrestige()){const ce=chipsEarned();tabPr.innerHTML="Prestige <span class='tab-badge'>"+ce+"</span>"}
   else if(tabPr)tabPr.innerHTML="Prestige";
