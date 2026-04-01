@@ -632,44 +632,82 @@ function render(){
   const LIFESTYLE_STEPS=[
     {cash:0,        field:"status",  val:"Nobody"},
     {cash:500,      field:"home",    val:"Bedsit above a chippy"},
-    {cash:2000,     field:"car",     val:"Rusty bicycle"},
+    {cash:1500,     field:"outfit",  val:"Primark jeans"},
+    {cash:2500,     field:"car",     val:"Rusty bicycle"},
+    {cash:4000,     field:"watch",   val:"Casio F-91W"},
     {cash:5000,     field:"partner", val:"Talking to someone on Tinder"},
+    {cash:8000,     field:"holiday", val:"Butlins weekend"},
     {cash:10000,    field:"home",    val:"Shared flat"},
+    {cash:14000,    field:"followers",val:"200 followers"},
     {cash:18000,    field:"status",  val:"Getting there"},
+    {cash:22000,    field:"outfit",  val:"Next sale rack"},
     {cash:25000,    field:"car",     val:"1998 Corsa"},
+    {cash:32000,    field:"watch",   val:"Seiko 5"},
     {cash:40000,    field:"partner", val:"Girlfriend"},
+    {cash:50000,    field:"holiday", val:"Benidorm all-inclusive"},
     {cash:60000,    field:"home",    val:"One-bed flat"},
+    {cash:70000,    field:"followers",val:"1,200 followers"},
     {cash:80000,    field:"status",  val:"Comfortable"},
+    {cash:90000,    field:"outfit",  val:"Ted Baker"},
     {cash:100000,   field:"car",     val:"Second-hand Golf"},
+    {cash:120000,   field:"watch",   val:"Tag Heuer"},
     {cash:150000,   field:"partner", val:"Serious girlfriend"},
+    {cash:180000,   field:"holiday", val:"Greek islands"},
+    {cash:220000,   field:"followers",val:"8,000 followers"},
     {cash:250000,   field:"home",    val:"Two-bed house"},
+    {cash:320000,   field:"outfit",  val:"Hugo Boss"},
     {cash:400000,   field:"car",     val:"New BMW 3 Series"},
+    {cash:450000,   field:"watch",   val:"Omega Seamaster"},
     {cash:500000,   field:"status",  val:"Doing well"},
+    {cash:600000,   field:"holiday", val:"Maldives"},
+    {cash:700000,   field:"followers",val:"45,000 followers"},
     {cash:750000,   field:"partner", val:"Fiancée"},
+    {cash:900000,   field:"outfit",  val:"Armani suit"},
     {cash:1000000,  field:"home",    val:"Detached house"},
+    {cash:1200000,  field:"watch",   val:"Rolex Submariner"},
     {cash:1500000,  field:"car",     val:"Porsche Cayenne"},
+    {cash:1800000,  field:"holiday", val:"Private villa, Bali"},
     {cash:2000000,  field:"status",  val:"Made it"},
+    {cash:2500000,  field:"followers",val:"200,000 followers"},
     {cash:3000000,  field:"partner", val:"Wife"},
+    {cash:3500000,  field:"outfit",  val:"Bespoke Savile Row"},
+    {cash:4000000,  field:"watch",   val:"Patek Philippe"},
     {cash:5000000,  field:"home",    val:"Country manor"},
+    {cash:6000000,  field:"holiday", val:"Skiing in Verbier"},
     {cash:7000000,  field:"car",     val:"Bentley Continental"},
+    {cash:8000000,  field:"followers",val:"1.2M followers"},
     {cash:10000000, field:"status",  val:"Wealthy"},
+    {cash:12000000, field:"outfit",  val:"Tom Ford everything"},
     {cash:15000000, field:"home",    val:"Penthouse, The Shard"},
+    {cash:18000000, field:"watch",   val:"Richard Mille"},
     {cash:20000000, field:"car",     val:"Rolls-Royce Ghost"},
+    {cash:25000000, field:"holiday", val:"Superyacht, Mediterranean"},
     {cash:30000000, field:"partner", val:"Trophy wife"},
+    {cash:35000000, field:"followers",val:"5M followers"},
     {cash:50000000, field:"status",  val:"Rich"},
+    {cash:65000000, field:"outfit",  val:"Whatever you want. They send it free."},
     {cash:75000000, field:"home",    val:"Mayfair townhouse"},
     {cash:100000000,field:"car",     val:"Lamborghini + driver"},
+    {cash:120000000,field:"watch",   val:"One-off custom piece"},
     {cash:150000000,field:"partner", val:"Wife + mistress"},
+    {cash:180000000,field:"holiday", val:"Private island rental"},
+    {cash:200000000,field:"followers",val:"12M followers. Verified."},
     {cash:250000000,field:"status",  val:"Filthy rich"},
     {cash:350000000,field:"home",    val:"Monaco apartment"},
     {cash:500000000,field:"car",     val:"Bugatti Chiron"},
+    {cash:600000000,field:"outfit",  val:"You ARE the brand now"},
     {cash:750000000,field:"partner", val:"Supermodel wife"},
+    {cash:850000000,field:"holiday", val:"Anywhere. Anytime. By private jet."},
     {cash:1000000000,field:"status", val:"Elite"},
+    {cash:1200000000,field:"followers",val:"50M followers. Cultural icon."},
     {cash:1500000000,field:"home",   val:"Private compound"},
+    {cash:1800000000,field:"watch",  val:"You bought the watch company"},
     {cash:2000000000,field:"car",    val:"Helicopter"},
     {cash:3000000000,field:"partner",val:"Supermodel wife + yacht crew"},
+    {cash:4000000000,field:"holiday",val:"Space tourism"},
     {cash:5000000000,field:"status", val:"Untouchable"},
     {cash:7000000000,field:"home",   val:"Private island"},
+    {cash:8000000000,field:"followers",val:"Everyone knows your name"},
     {cash:10000000000,field:"car",   val:"Private jet"},
     {cash:15000000000,field:"partner",val:"It's complicated"},
     {cash:20000000000,field:"status", val:"Above the law"},
@@ -684,24 +722,26 @@ function render(){
   ];
 
   // Build current life state by replaying all steps
-  const life={home:"Mum's spare room",car:"Bus pass",partner:"Single",status:"Nobody"};
+  const life={home:"Mum's spare room",car:"Bus pass",partner:"Single",status:"Nobody",watch:"No watch",outfit:"Whatever's clean",holiday:"Nowhere",followers:"0 followers"};
   let lastStepIdx=-1;
   for(let i=0;i<LIFESTYLE_STEPS.length;i++){
     if(S.totalCash>=LIFESTYLE_STEPS[i].cash){life[LIFESTYLE_STEPS[i].field]=LIFESTYLE_STEPS[i].val;lastStepIdx=i}
   }
-  // Find next 2 steps
   const nextSteps=LIFESTYLE_STEPS.filter((s,i)=>i>lastStepIdx).slice(0,2);
 
   if(S.totalCash>=500){
-    const fieldIcons={home:"📍",car:"🚗",partner:"❤️",status:"📊"};
-    const fieldLabels={home:"Home",car:"Wheels",partner:"Love life",status:"Status"};
+    const fieldIcons={home:"📍",car:"🚗",partner:"❤️",status:"📊",watch:"⌚",outfit:"👔",holiday:"✈️",followers:"📱"};
+    const fieldLabels={home:"Home",car:"Wheels",partner:"Love life",status:"Status",watch:"Watch",outfit:"Outfit",holiday:"Holiday",followers:"Social"};
     bh+=`<div class="building-row" style="border-top:2px solid #1a2e1a;margin-top:8px;padding-top:12px"><span class="b-icon">👤</span><div class="b-info"><div class="b-name" style="color:#8a8">YOUR LIFE — ${life.status}</div></div></div>`;
     bh+=`<div class="building-row"><span class="b-icon">📍</span><div class="b-info"><div class="b-name">${life.home}</div></div></div>`;
     bh+=`<div class="building-row"><span class="b-icon">🚗</span><div class="b-info"><div class="b-name">${life.car}</div></div></div>`;
     bh+=`<div class="building-row"><span class="b-icon">❤️</span><div class="b-info"><div class="b-name">${life.partner}</div></div></div>`;
+    if(life.watch!=="No watch")bh+=`<div class="building-row"><span class="b-icon">⌚</span><div class="b-info"><div class="b-name">${life.watch}</div></div></div>`;
+    if(life.outfit!=="Whatever's clean")bh+=`<div class="building-row"><span class="b-icon">👔</span><div class="b-info"><div class="b-name">${life.outfit}</div></div></div>`;
+    if(life.holiday!=="Nowhere")bh+=`<div class="building-row"><span class="b-icon">✈️</span><div class="b-info"><div class="b-name">${life.holiday}</div></div></div>`;
+    if(life.followers!=="0 followers")bh+=`<div class="building-row"><span class="b-icon">📱</span><div class="b-info"><div class="b-name">${life.followers}</div></div></div>`;
     for(let i=0;i<nextSteps.length;i++){
       const ns=nextSteps[i];
-      const icon=fieldIcons[ns.field]||"⬆️";
       const label=fieldLabels[ns.field]||ns.field;
       const opacity=i===0?.55:.3;
       bh+=`<div class="building-row" style="opacity:${opacity}"><span class="b-icon">${i===0?"⬆️":"🔒"}</span><div class="b-info"><div class="b-name">${label}: ${ns.val}</div><div class="b-prod">at ${$(ns.cash)} total earned</div></div></div>`;
@@ -724,13 +764,12 @@ function render(){
     }
   }
   let ur="";
-  // First-time hint
   if(!S.hints)S.hints={};
-  if(availU.length>0&&!S.hints.upgrades){ur+=`<div class="hint">Upgrades boost your buildings. Hover for details, click to buy.</div>`;S.hints.upgrades=true;sv()}
-  for(const u of availU.slice(0,12)){
+  if(availU.length>0&&!S.hints.upgrades){ur+=`<div class="hint">Upgrades boost your click power and buildings. Click to buy.</div>`;S.hints.upgrades=true;sv()}
+  for(const u of availU.slice(0,8)){
     const locked=S.cash<u.cost;
     const isNew=S.seenUpgrades.includes(u.id)&&!S.upgrades.includes(u.id)&&S.seenUpgrades.indexOf(u.id)>=S.seenUpgrades.length-3;
-    ur+=`<div class="upgrade-icon${locked?" locked":""}${isNew&&!locked?" new-glow":""}" onclick="buyU('${u.id}')" title="${u.n}: ${u.desc} (${$(u.cost)})">${u.icon}</div>`;
+    ur+=`<div class="store-item${locked?" locked":""}${isNew&&!locked?" new-glow":""}" onclick="buyU('${u.id}')" style="padding:6px 10px"><span class="s-icon">${u.icon}</span><div class="s-info"><div class="s-name" style="font-size:11px">${u.n}</div><div class="s-desc">${u.desc}</div></div><div class="s-cost" style="font-size:11px">${$(u.cost)}</div></div>`;
   }
   document.getElementById("upgradesRow").innerHTML=ur;
 
