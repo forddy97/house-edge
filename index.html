@@ -98,6 +98,9 @@ body{font-family:Verdana,Geneva,sans-serif;background:#1a0a2e;color:#ddd;overflo
 }
 .upgrade-icon:hover:not(.locked){border-color:#4ade80;background:#1a2a1a}
 .upgrade-icon.locked{opacity:.3;cursor:default}
+.upgrade-icon.new-glow{animation:newGlow 1.5s ease-in-out 3;border-color:#4ade80}
+@keyframes newGlow{0%,100%{box-shadow:none}50%{box-shadow:0 0 12px rgba(74,222,128,.6)}}
+.hint{background:#1a2a1a;border:1px solid #2a4a2a;border-radius:4px;padding:6px 10px;margin:4px 0;font-size:10px;color:#6a8;font-style:italic}
 .upgrade-icon .cost-tag{position:absolute;bottom:-1px;right:-1px;background:#000;color:#4ade80;font-size:7px;padding:1px 3px;border-radius:2px}
 
 /* Store items */
@@ -317,6 +320,7 @@ const DEF={
   lastDaily:0,dailyStreak:0,
   // Prestige
   prestiges:0,pMult:1,chips:0,pUps:[],pClickMult:1,whaleFreq:1,startCash:0,startDealers:0,startTables:0,globalMult:1,
+  seenUpgrades:[],hints:{},
   lt:Date.now(),
   tab:"buildings"
 };
@@ -659,18 +663,32 @@ function render(){
 
   // Right: store
   // Upgrades row (icons)
-  // Only show upgrades the player has unlocked requirements for AND can see (within 50x cash)
+  // Only show upgrades the player has unlocked requirements for AND can see
   const availU=UPGRADES.filter(u=>!S.upgrades.includes(u.id)&&(!u.req||u.req(S))&&u.cost<=Math.max(S.totalCash*50,S.cash*100));
+  if(!S.seenUpgrades)S.seenUpgrades=[];
+  // Check for newly available upgrades — announce in ticker
+  for(const u of availU){
+    if(!S.seenUpgrades.includes(u.id)){
+      S.seenUpgrades.push(u.id);
+      tick("NEW: "+u.n+" available. "+u.desc);
+    }
+  }
   let ur="";
-  for(const u of availU.slice(0,12)){// Max 12 visible at once
+  // First-time hint
+  if(!S.hints)S.hints={};
+  if(availU.length>0&&!S.hints.upgrades){ur+=`<div class="hint">Upgrades boost your buildings. Hover for details, click to buy.</div>`;S.hints.upgrades=true;sv()}
+  for(const u of availU.slice(0,12)){
     const locked=S.cash<u.cost;
-    ur+=`<div class="upgrade-icon${locked?" locked":""}" onclick="buyU('${u.id}')" title="${u.n}: ${u.desc} (${$(u.cost)})">${u.icon}</div>`;
+    const isNew=S.seenUpgrades.includes(u.id)&&!S.upgrades.includes(u.id)&&S.seenUpgrades.indexOf(u.id)>=S.seenUpgrades.length-3;
+    ur+=`<div class="upgrade-icon${locked?" locked":""}${isNew&&!locked?" new-glow":""}" onclick="buyU('${u.id}')" title="${u.n}: ${u.desc} (${$(u.cost)})">${u.icon}</div>`;
   }
   document.getElementById("upgradesRow").innerHTML=ur;
 
   // Store list
   let sl="";
   if(storeTab==="buildings"){
+    // First building hint
+    if(own("dealer")===0&&S.cash>=15&&!S.hints.buildings){sl+=`<div class="hint">Buildings earn cash automatically. Buy your first Dealer to start.</div>`;S.hints.buildings=true;sv()}
     let shownLocked=false;
     for(const b of BUILDINGS){
       if(b.mw&&S.wins<b.mw)continue;
@@ -701,6 +719,7 @@ function render(){
   // Prestige tab
   if(storeTab==="prestige"){
     sl="";
+    if(!S.hints.prestige){sl+=`<div class="hint">Cash Out resets your empire but earns permanent Chips. Spend Chips on upgrades that carry over forever. Each run gets faster.</div>`;S.hints.prestige=true;sv()}
     const ce=chipsEarned();
     sl+=`<div class="store-item" style="border-bottom:2px solid #4a2"><span class="s-icon">🎰</span><div class="s-info"><div class="s-name" style="color:#fbbf24">Chips: ${S.chips||0}</div><div class="s-desc">Cash out now for +${ce} chips (need ${$(10000)} total earned)</div></div></div>`;
     if(canPrestige()){
@@ -721,6 +740,11 @@ function render(){
   // Cash out hint at bottom of buildings tab
   if(storeTab==="buildings"&&canPrestige()){
     const ce=chipsEarned();
+    if(!S.hints.prestigeAvail){
+      S.hints.prestigeAvail=true;
+      tick("NEW: Cash Out is now available. Sell your empire for permanent Chips.");
+      sv();
+    }
     sl+=`<div class="store-item" onclick="setTab('prestige')" style="border-top:2px solid #4a2;margin-top:8px;cursor:pointer"><span class="s-icon">💰</span><div class="s-info"><div class="s-name" style="color:#fbbf24">Cash Out available (+${ce} chips)</div><div class="s-desc">Check the Prestige tab.</div></div></div>`;
   }
 
