@@ -691,9 +691,6 @@ function render(){
   }
   // Find next 2 steps
   const nextSteps=LIFESTYLE_STEPS.filter((s,i)=>i>lastStepIdx).slice(0,2);
-  let currentLife=LIFESTYLE[0];
-  for(const l of LIFESTYLE){if(S.totalCash>=l.cash)currentLife=l;else break}
-  const nextLife=LIFESTYLE[LIFESTYLE.indexOf(currentLife)+1];
 
   if(S.totalCash>=500){
     const fieldIcons={home:"📍",car:"🚗",partner:"❤️",status:"📊"};
