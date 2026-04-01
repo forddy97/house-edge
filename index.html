@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>House Edge</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Verdana,Geneva,sans-serif;background:#1a0a2e;color:#ddd;overflow:hidden;height:100dvh}
+
+/* ── 3-Column Layout (like Cookie Clicker) ───────────────────── */
+.game{display:flex;height:100dvh;width:100%}
+
+/* LEFT: The click area + info */
+.left{flex:0 0 300px;background:linear-gradient(180deg,#1a0a2e 0%,#0d1b0e 100%);display:flex;flex-direction:column;align-items:center;padding:16px;position:relative;overflow:hidden}
+
+/* MIDDLE: Buildings owned (visual) */
+.mid{flex:1;background:#0a0a12;border-left:2px solid #2a1a4a;border-right:2px solid #2a1a4a;overflow-y:auto;position:relative}
+
+/* RIGHT: Store */
+.right{flex:0 0 320px;background:#12081f;overflow-y:auto;padding:0}
+
+/* ── Left Panel ──────────────────────────────────────────────── */
+.cash-display{text-align:center;margin-bottom:4px}
+.cash-num{font-size:28px;font-weight:700;color:#fff;text-shadow:0 0 10px rgba(74,222,128,.3)}
+.cash-label{font-size:10px;color:#8a8;letter-spacing:1px}
+.cps{font-size:11px;color:#6a6;margin-bottom:12px}
+
+/* The big click button */
+.click-btn{
+  width:200px;height:200px;border-radius:50%;
+  background:radial-gradient(circle at 40% 35%,#2d8a4e,#1a5a30 50%,#0d3318);
+  border:4px solid #4ade80;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;
+  transition:transform .05s;position:relative;
+  box-shadow:0 0 40px rgba(74,222,128,.15),0 0 80px rgba(74,222,128,.05);
+  margin:8px 0;
+}
+.click-btn:hover{box-shadow:0 0 50px rgba(74,222,128,.25)}
+.click-btn:active{transform:scale(.93)}
+.click-btn .icon{font-size:48px;margin-bottom:4px}
+.click-btn .label{font-size:13px;color:#4ade80;font-weight:700;letter-spacing:2px;text-transform:uppercase}
+
+/* Float numbers on click */
+.float{position:absolute;pointer-events:none;font-size:18px;font-weight:700;color:#4ade80;animation:floatUp .8s ease-out forwards;text-shadow:0 0 6px rgba(74,222,128,.5)}
+.float.loss{color:#ef4444;text-shadow:0 0 6px rgba(239,68,68,.5)}
+.float.jack{color:#fbbf24;font-size:24px;text-shadow:0 0 10px rgba(251,191,36,.5)}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-80px)}}
+
+/* Left panel info rows */
+.left-info{width:100%;margin-top:auto;padding-top:10px}
+.info-row{display:flex;justify-content:space-between;font-size:11px;padding:2px 4px;color:#8a8}
+.info-row .val{color:#ada;font-weight:600}
+
+/* News ticker */
+.ticker{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.4);padding:6px 12px;font-size:10px;color:#686;border-top:1px solid #2a1a4a;min-height:28px}
+
+/* ── Whale (golden cookie) ───────────────────────────────────── */
+.whale{
+  position:absolute;width:70px;height:70px;border-radius:50%;
+  background:radial-gradient(circle,#ffd700,#daa520 60%,#b8860b);
+  border:2px solid #ffd700;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:32px;
+  animation:whaleBob 2s ease-in-out infinite;
+  box-shadow:0 0 20px rgba(255,215,0,.4);
+  z-index:10;
+}
+.whale:hover{box-shadow:0 0 30px rgba(255,215,0,.6);transform:scale(1.1)}
+@keyframes whaleBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+
+/* ── Middle: Building rows ───────────────────────────────────── */
+.building-row{
+  display:flex;align-items:center;padding:8px 12px;
+  border-bottom:1px solid #1a1a2a;min-height:50px;
+  background:linear-gradient(90deg,rgba(20,40,20,.3),transparent);
+}
+.building-row .b-icon{font-size:24px;margin-right:10px;width:32px;text-align:center}
+.building-row .b-info{flex:1}
+.building-row .b-name{font-size:12px;color:#aaa;font-weight:600}
+.building-row .b-count{font-size:22px;color:#4ade80;font-weight:700}
+.building-row .b-prod{font-size:9px;color:#686}
+.building-empty{padding:20px;text-align:center;color:#333;font-size:11px;font-style:italic}
+
+/* ── Right: Store ────────────────────────────────────────────── */
+.store-header{padding:8px 12px;background:#1a0e2e;border-bottom:2px solid #2a1a4a;font-size:11px;color:#888;letter-spacing:2px;text-transform:uppercase;font-weight:700;display:flex;justify-content:space-between}
+.store-tabs{display:flex}
+.store-tab{padding:6px 12px;font-size:10px;color:#666;cursor:pointer;border-bottom:2px solid transparent;text-transform:uppercase;letter-spacing:1px}
+.store-tab.active{color:#4ade80;border-color:#4ade80}
+
+/* Upgrade icons row */
+.upgrades-row{display:flex;flex-wrap:wrap;gap:4px;padding:8px;border-bottom:1px solid #1a1a2a;min-height:40px}
+.upgrade-icon{
+  width:40px;height:40px;border-radius:4px;background:#2a1a3a;
+  border:1px solid #3a2a5a;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:18px;
+  transition:border-color .15s,background .15s;position:relative;
+}
+.upgrade-icon:hover:not(.locked){border-color:#4ade80;background:#1a2a1a}
+.upgrade-icon.locked{opacity:.3;cursor:default}
+.upgrade-icon .cost-tag{position:absolute;bottom:-1px;right:-1px;background:#000;color:#4ade80;font-size:7px;padding:1px 3px;border-radius:2px}
+
+/* Store items */
+.store-item{
+  display:flex;align-items:center;padding:8px 12px;
+  border-bottom:1px solid #1a1a2a;cursor:pointer;
+  transition:background .1s;
+}
+.store-item:hover:not(.locked){background:#1a1a2a}
+.store-item.locked{opacity:.3;cursor:default}
+.store-item .s-icon{font-size:28px;margin-right:10px;width:36px;text-align:center}
+.store-item .s-info{flex:1}
+.store-item .s-name{font-size:12px;color:#ddd;font-weight:600}
+.store-item .s-desc{font-size:9px;color:#777;margin-top:1px}
+.store-item .s-cost{font-size:12px;color:#4ade80;font-weight:700;text-align:right;min-width:70px}
+.store-item .s-owned{font-size:18px;color:#4ade80;font-weight:700;min-width:30px;text-align:center}
+
+/* ── Mobile: stack vertically ────────────────────────────────── */
+@media(max-width:800px){
+  .game{flex-direction:column;height:auto;min-height:100dvh}
+  .left{flex:0 0 auto;padding:12px;min-height:280px}
+  .click-btn{width:140px;height:140px}
+  .click-btn .icon{font-size:36px}
+  .mid{flex:0 0 auto;min-height:120px;max-height:200px;border-left:none;border-right:none;border-top:2px solid #2a1a4a;border-bottom:2px solid #2a1a4a}
+  .right{flex:1;min-height:300px}
+  .cash-num{font-size:22px}
+}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:#0a0a12}
+::-webkit-scrollbar-thumb{background:#2a1a4a;border-radius:3px}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-2px)}75%{transform:translateX(2px)}}.shake{animation:shake .1s ease-in-out 2}
+</style>
+</head>
+<body>
+<div class="game" id="game">
+  <!-- LEFT: Click area -->
+  <div class="left" id="leftPanel">
+    <div class="cash-display">
+      <div class="cash-num" id="cashNum">£500</div>
+      <div class="cash-label">in the bank</div>
+    </div>
+    <div class="cps" id="cps"></div>
+
+    <div class="click-btn" id="clickBtn" onclick="deal(event)">
+      <div class="icon">🂡</div>
+      <div class="label">Deal</div>
+    </div>
+
+    <div class="left-info" id="leftInfo"></div>
+    <div class="ticker" id="ticker">Welcome to The House.</div>
+  </div>
+
+  <!-- MIDDLE: Buildings owned -->
+  <div class="mid" id="midPanel">
+    <div class="building-empty" id="emptyMsg">Hire your first dealer to start building.</div>
+    <div id="buildings"></div>
+  </div>
+
+  <!-- RIGHT: Store -->
+  <div class="right" id="rightPanel">
+    <div class="store-header"><span>Store</span></div>
+    <div class="store-tabs">
+      <div class="store-tab active" onclick="setTab('buildings')">Buildings</div>
+      <div class="store-tab" onclick="setTab('upgrades')">Upgrades</div>
+      <div class="store-tab" onclick="setTab('prestige')" id="pTab">Prestige</div>
+    </div>
+    <div id="upgradesRow" class="upgrades-row"></div>
+    <div id="storeList"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// THE HOUSE — Cookie Clicker Style
+// ═══════════════════════════════════════════════════════════════
+
+// Sound
+let _a;function ac(){if(!_a)_a=new(window.AudioContext||window.webkitAudioContext)();return _a}
+function tn(f,d,t="sine",v=.06){try{const c=ac(),o=c.createOscillator(),g=c.createGain();o.type=t;o.frequency.value=f;g.gain.setValueAtTime(v,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+d)}catch{}}
+function sClick(){tn(800,.03,"square",.03)}
+function sWin(){tn(660,.05,"sine",.07);setTimeout(()=>tn(880,.06,"sine",.05),30)}
+function sLose(){tn(220,.04,"triangle",.04)}
+function sJack(){tn(523,.05,"sine",.08);setTimeout(()=>tn(659,.05,"sine",.07),35);setTimeout(()=>tn(784,.05,"sine",.07),70);setTimeout(()=>tn(1047,.1,"sine",.09),105)}
+function sBuy(){tn(1000,.04,"sine",.05);setTimeout(()=>tn(1400,.05,"sine",.06),25)}
+function sWhale(){tn(440,.08,"sine",.08);setTimeout(()=>tn(660,.08,"sine",.07),50);setTimeout(()=>tn(880,.12,"sine",.08),100)}
+
+// ── Buildings (like Cookie Clicker's Cursor, Grandma, Farm...) ──
+const BUILDINGS=[
+  {id:"dealer",n:"Dealer",        icon:"🂡",desc:"Deals hands automatically.",       baseCost:15,    baseProd:.1,  mw:0},
+  {id:"table", n:"Extra Table",   icon:"🎲",desc:"More tables, more capacity.",       baseCost:100,   baseProd:.5,  mw:0},
+  {id:"bouncer",n:"Bouncer",      icon:"🕴️",desc:"Keeps the riff-raff out.",          baseCost:1100,  baseProd:4,   mw:0},
+  {id:"bar",   n:"Bar",           icon:"🍸",desc:"Punters drink, punters stay.",       baseCost:12000, baseProd:20,  mw:0},
+  {id:"fobt",  n:"FOBT Machine",  icon:"🎰",desc:"Fixed odds. Fixed income.",         baseCost:130000,baseProd:100, mw:0},
+  {id:"floor", n:"New Floor",     icon:"🏢",desc:"Another floor, another fortune.",    baseCost:1400000,baseProd:500,mw:0},
+  {id:"online",n:"Online Site",   icon:"💻",desc:"The internet never closes.",         baseCost:20000000,baseProd:3000,mw:0},
+  {id:"chain", n:"Shop Chain",    icon:"🏪",desc:"High streets up and down the country.",baseCost:330000000,baseProd:20000,mw:0},
+  {id:"casino",n:"Casino Resort", icon:"🏛️",desc:"A destination, not just a venue.",   baseCost:5100000000,baseProd:130000,mw:0},
+  {id:"server",n:"Server Farm",   icon:"🖥️",desc:"Process a million bets a minute.",   baseCost:75000000000,baseProd:900000,mw:0},
+  {id:"island",n:"Private Island",icon:"🏝️",desc:"Where the real money is made.",      baseCost:1000000000000,baseProd:6000000,mw:0},
+  {id:"algo",  n:"The Algorithm",  icon:"👁️",desc:"You don't run the house. You are the house.",baseCost:14000000000000,baseProd:40000000,mw:0},
+];
+
+// ── Upgrades (like Cookie Clicker's upgrade icons) ─────────────
+const UPGRADES=[
+  // Click power
+  // Click upgrades — unlock based on hands dealt
+  {id:"u1", n:"Marked Cards",     icon:"🃏",desc:"Hands pay twice as much.",     cost:50,    cat:"click", fx:S=>{S.clickMult*=2},    req:S=>S.hands>=10},
+  {id:"u2", n:"Loaded Dice",      icon:"🎲",desc:"Hands pay twice as much.",     cost:300,   cat:"click", fx:S=>{S.clickMult*=2},    req:S=>S.hands>=30},
+  {id:"u3", n:"Stacked Deck",     icon:"✨",desc:"Hands pay twice as much.",     cost:2000,  cat:"click", fx:S=>{S.clickMult*=2},    req:S=>S.hands>=100},
+  {id:"u4", n:"Cold Read",        icon:"🧠",desc:"Hands pay twice as much.",     cost:20000, cat:"click", fx:S=>{S.clickMult*=2},    req:S=>S.hands>=300},
+  {id:"u5", n:"The Trick",        icon:"🎩",desc:"Hands pay x5.",                cost:200000,cat:"click", fx:S=>{S.clickMult*=5},    req:S=>S.hands>=800},
+  {id:"u6", n:"Sleight of Hand",  icon:"🖐️",desc:"Hands pay x10.",               cost:5000000,cat:"click",fx:S=>{S.clickMult*=10},   req:S=>S.hands>=2000},
+
+  // Building boosters — unlock based on owning N of that type
+  {id:"d1", n:"Faster Shuffle",   icon:"⚡",desc:"Dealers are twice as efficient.", cost:150,   cat:"building",target:"dealer",mult:2, req:S=>own("dealer")>=1},
+  {id:"d2", n:"Card Counting",    icon:"🔢",desc:"Dealers are twice as efficient.", cost:1500,  cat:"building",target:"dealer",mult:2, req:S=>own("dealer")>=5},
+  {id:"d3", n:"Second Shift",     icon:"🌙",desc:"Dealers are twice as efficient.", cost:15000, cat:"building",target:"dealer",mult:2, req:S=>own("dealer")>=25},
+  {id:"d4", n:"24/7 Operation",   icon:"🔄",desc:"Dealers are twice as efficient.", cost:150000,cat:"building",target:"dealer",mult:2, req:S=>own("dealer")>=50},
+
+  {id:"t1", n:"Green Felt",       icon:"🟢",desc:"Tables are twice as productive.",  cost:1000,  cat:"building",target:"table",mult:2,  req:S=>own("table")>=1},
+  {id:"t2", n:"VIP Tables",       icon:"💎",desc:"Tables are twice as productive.",  cost:5000,  cat:"building",target:"table",mult:2,  req:S=>own("table")>=5},
+  {id:"t3", n:"Table Service",    icon:"🍾",desc:"Tables are twice as productive.",  cost:50000, cat:"building",target:"table",mult:2,  req:S=>own("table")>=25},
+
+  {id:"b1", n:"Velvet Rope",      icon:"🚧",desc:"Bouncers are twice as effective.", cost:5500,  cat:"building",target:"bouncer",mult:2,req:S=>own("bouncer")>=1},
+  {id:"b2", n:"Guest List",       icon:"📋",desc:"Bouncers are twice as effective.", cost:55000, cat:"building",target:"bouncer",mult:2,req:S=>own("bouncer")>=5},
+  {id:"b3", n:"VIP Only",         icon:"🎭",desc:"Bouncers are twice as effective.", cost:550000,cat:"building",target:"bouncer",mult:2,req:S=>own("bouncer")>=25},
+
+  {id:"br1",n:"Top Shelf",        icon:"🥃",desc:"Bars are twice as productive.",    cost:60000, cat:"building",target:"bar",mult:2,   req:S=>own("bar")>=1},
+  {id:"br2",n:"Happy Hour",       icon:"🎉",desc:"Bars are twice as productive.",    cost:600000,cat:"building",target:"bar",mult:2,   req:S=>own("bar")>=5},
+  {id:"br3",n:"Open Bar",         icon:"🍸",desc:"Bars are twice as productive.",    cost:6000000,cat:"building",target:"bar",mult:2,  req:S=>own("bar")>=25},
+
+  {id:"f1", n:"Rigged Reels",     icon:"🎯",desc:"FOBTs are twice as productive.",   cost:650000,cat:"building",target:"fobt",mult:2,  req:S=>own("fobt")>=1},
+  {id:"f2", n:"Max Bet Button",   icon:"💰",desc:"FOBTs are twice as productive.",   cost:6500000,cat:"building",target:"fobt",mult:2, req:S=>own("fobt")>=5},
+
+  {id:"fl1",n:"Penthouse Suite",  icon:"🌃",desc:"Floors are twice as productive.",  cost:7000000,cat:"building",target:"floor",mult:2,req:S=>own("floor")>=1},
+  {id:"fl2",n:"Sky Lounge",       icon:"🌆",desc:"Floors are twice as productive.",  cost:70000000,cat:"building",target:"floor",mult:2,req:S=>own("floor")>=5},
+
+  {id:"o1", n:"SSL Certificate",  icon:"🔒",desc:"Sites are twice as productive.",cost:100000000,cat:"building",target:"online",mult:2,req:S=>own("online")>=1},
+  {id:"o2", n:"Live Streaming",   icon:"📺",desc:"Sites are twice as productive.",cost:1000000000,cat:"building",target:"online",mult:2,req:S=>own("online")>=5},
+
+  {id:"ch1",n:"Franchise Model",  icon:"📊",desc:"Chains are twice as productive.", cost:1650000000,cat:"building",target:"chain",mult:2,req:S=>own("chain")>=1},
+
+  {id:"ca1",n:"Whale Programme",  icon:"🐋",desc:"Resorts are twice as productive.",cost:25500000000,cat:"building",target:"casino",mult:2,req:S=>own("casino")>=1},
+
+  {id:"sv1",n:"Quantum Computing",icon:"⚛️",desc:"Servers are twice as productive.",cost:375000000000,cat:"building",target:"server",mult:2,req:S=>own("server")>=1},
+
+  {id:"is1",n:"Tax Haven",        icon:"🏦",desc:"Islands are twice as productive.",cost:5000000000000,cat:"building",target:"island",mult:2,req:S=>own("island")>=1},
+
+  {id:"al1",n:"Sentient AI",      icon:"🤖",desc:"The Algorithm is twice as powerful.",cost:70000000000000,cat:"building",target:"algo",mult:2,req:S=>own("algo")>=1},
+];
+
+// ── State ──────────────────────────────────────────────────────
+const DEF={
+  cash:0,totalCash:0,
+  owned:{},buildingMult:{},
+  hands:0,wins:0,streak:0,bestStreak:0,
+  clickMult:1,
+  upgrades:[],
+  // Whale
+  whalesCaught:0,
+  // Daily
+  lastDaily:0,dailyStreak:0,
+  // Prestige
+  prestiges:0,pMult:1,chips:0,pUps:[],pClickMult:1,whaleFreq:1,startCash:0,startDealers:0,startTables:0,
+  lt:Date.now(),
+  tab:"buildings"
+};
+let S;try{const d=localStorage.getItem("houseG");S=d?{...DEF,...JSON.parse(d)}:{...DEF}}catch{S={...DEF}}
+let logs=[];let whaleEl=null;let whaleTimeout=null;
+
+function sv(){S.lt=Date.now();localStorage.setItem("houseG",JSON.stringify(S))}
+function $(n){if(n<0)return"-"+$(-n);if(n>=1e12)return"£"+(n/1e12).toFixed(2)+"T";if(n>=1e9)return"£"+(n/1e9).toFixed(2)+"B";if(n>=1e6)return"£"+(n/1e6).toFixed(2)+"M";if(n>=1000)return"£"+n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,",");return"£"+n.toFixed(2)}
+function own(id){return S.owned[id]||0}
+function bMult(id){return S.buildingMult[id]||1}
+
+// ── Costs (Cookie Clicker formula: base * 1.15^owned) ──────────
+function bCost(b){return Math.floor(b.baseCost*Math.pow(1.15,own(b.id)))}
+
+// ── Production ─────────────────────────────────────────────────
+function bProd(b){return b.baseProd*bMult(b.id)*S.pMult}
+function totalCPS(){
+  let t=0;
+  for(const b of BUILDINGS){const n=own(b.id);if(n>0)t+=bProd(b)*n}
+  return t;
+}
+function clickValue(){return(1+totalCPS()*.05)*S.clickMult*S.pMult*(S.pClickMult||1)}
+
+// ── Deal (click) ───────────────────────────────────────────────
+function deal(ev){
+  sClick();S.hands++;
+  const cv=clickValue();
+  // 60% win, 40% lose (net positive due to win amounts > loss amounts)
+  let amt,type;
+  if(Math.random()<.65){
+    amt=cv*(.8+Math.random()*.8);S.cash+=amt;S.wins++;S.streak++;S.totalCash+=amt;type="w";
+    if(S.streak>S.bestStreak)S.bestStreak=S.streak;
+    if(Math.random()<.04){const b=amt*(3+Math.random()*5);S.cash+=b;S.totalCash+=b;amt+=b;type="j";sJack();tick("JACKPOT! +"+$(amt))}
+    else sWin();
+  }else{
+    amt=cv*(.1+Math.random()*.2);S.cash=Math.max(0,S.cash-amt);S.streak=0;type="l";sLose();
+  }
+  // Float
+  const fl=document.createElement("div");
+  fl.className="float"+(type==="l"?" loss":type==="j"?" jack":"");
+  fl.textContent=(type==="l"?"-":"+")+$(Math.abs(amt));
+  fl.style.left=(ev.offsetX||100)+"px";fl.style.top=(ev.offsetY||100)+"px";
+  document.getElementById("leftPanel").appendChild(fl);
+  setTimeout(()=>fl.remove(),800);
+  render();
+}
+
+// ── Buy Building ───────────────────────────────────────────────
+function buyB(id){
+  const b=BUILDINGS.find(x=>x.id===id);if(!b)return;
+  const c=bCost(b);if(S.cash<c)return;
+  if(b.mw&&S.wins<b.mw)return;
+  S.cash-=c;S.owned[id]=(S.owned[id]||0)+1;
+  sBuy();tick(b.n+" purchased. ("+own(b.id)+")");sv();render();
+}
+
+// ── Buy Upgrade ────────────────────────────────────────────────
+function buyU(id){
+  const u=UPGRADES.find(x=>x.id===id);if(!u||S.upgrades.includes(id)||S.cash<u.cost)return;
+  if(u.req&&!u.req(S))return;
+  S.cash-=u.cost;S.upgrades.push(id);
+  if(u.cat==="click")u.fx(S);
+  if(u.cat==="building"){S.buildingMult[u.target]=(S.buildingMult[u.target]||1)*u.mult}
+  sBuy();tick(u.n+" researched.");sv();render();
+}
+
+// ── Auto tick ──────────────────────────────────────────────────
+let tAcc=0;
+function autoTick(dt){
+  tAcc+=dt;
+  while(tAcc>=1000){
+    tAcc-=1000;
+    const cps=totalCPS();
+    if(cps>0){
+      // Slight variance
+      const earned=cps*(.95+Math.random()*.1);
+      S.cash+=earned;S.totalCash+=earned;
+    }
+    // Whale spawn — more frequent early game, settles to ~every 90s
+    const whaleChance=(S.whalesCaught<3?.025:.012)*(S.whaleFreq||1);
+    if(!whaleEl&&Math.random()<whaleChance)spawnWhale();
+  }
+}
+
+// ── Whale (Golden Cookie) ──────────────────────────────────────
+function spawnWhale(){
+  if(whaleEl)return;
+  const left=document.getElementById("leftPanel");
+  whaleEl=document.createElement("div");
+  whaleEl.className="whale";
+  whaleEl.textContent="🐋";
+  whaleEl.style.left=Math.floor(20+Math.random()*200)+"px";
+  whaleEl.style.top=Math.floor(80+Math.random()*200)+"px";
+  whaleEl.onclick=catchWhale;
+  left.appendChild(whaleEl);
+  whaleTimeout=setTimeout(()=>{if(whaleEl){whaleEl.remove();whaleEl=null}},12000);
+}
+function catchWhale(){
+  if(!whaleEl)return;
+  clearTimeout(whaleTimeout);whaleEl.remove();whaleEl=null;
+  sWhale();S.whalesCaught++;
+  const cps=totalCPS();
+  const roll=Math.random();
+  if(roll<.5){
+    // Lucky hand: big cash bonus
+    const bonus=Math.max(200,cps*60*7);
+    S.cash+=bonus;S.totalCash+=bonus;
+    tick("Whale bonus! +"+$(bonus));
+  }else{
+    // Frenzy: temporarily noted (simplified — just give cash)
+    const bonus=Math.max(100,cps*60*3);
+    S.cash+=bonus;S.totalCash+=bonus;
+    tick("Whale dropped "+$(bonus)+" at the table.");
+  }
+  render();
+}
+
+// ── Daily ──────────────────────────────────────────────────────
+function checkDaily(){
+  const now=new Date();const today=now.getFullYear()*10000+(now.getMonth()+1)*100+now.getDate();
+  if(S.lastDaily!==today){
+    S.lastDaily=today;S.dailyStreak++;
+    const bonus=100*S.dailyStreak*(1+Math.floor(S.totalCash/10000));
+    S.cash+=bonus;S.totalCash+=bonus;
+    tick("Daily bonus: +"+$(bonus)+" (day "+S.dailyStreak+")");
+  }
+}
+
+// ── Prestige ───────────────────────────────────────────────────
+// "Chips" = prestige currency (like Heavenly Chips in Cookie Clicker)
+// Earned on Cash Out based on total earnings. Spent on permanent upgrades.
+
+const PRESTIGE_UPS=[
+  {id:"pc1",n:"Insider Knowledge",    d:"Start each run with £500",          cost:1,  fx:S=>{S.startCash=500}},
+  {id:"pc2",n:"Reputation",           d:"+10% earnings permanently",         cost:2,  fx:S=>{S.pMult*=1.1}},
+  {id:"pc3",n:"Lucky Streak",         d:"Whales appear 50% more often",      cost:3,  fx:S=>{S.whaleFreq=1.5}},
+  {id:"pc4",n:"Head Start",           d:"Start with 5 free dealers",          cost:5,  fx:S=>{S.startDealers=5}},
+  {id:"pc5",n:"Experienced Hands",    d:"+25% earnings permanently",         cost:8,  fx:S=>{S.pMult*=1.25}},
+  {id:"pc6",n:"Card Shark",           d:"Click power x3 permanently",        cost:10, fx:S=>{S.pClickMult=3}},
+  {id:"pc7",n:"Connected",            d:"Start with 3 free tables",           cost:12, fx:S=>{S.startTables=3}},
+  {id:"pc8",n:"Old Money",            d:"Start each run with £5,000",         cost:15, fx:S=>{S.startCash=5000}},
+  {id:"pc9",n:"Empire Builder",       d:"+50% earnings permanently",         cost:20, fx:S=>{S.pMult*=1.5}},
+  {id:"pc10",n:"Whale Magnet",        d:"Whales appear 3x more often",       cost:30, fx:S=>{S.whaleFreq=3}},
+  {id:"pc11",n:"Golden Touch",        d:"Earnings x2 permanently",           cost:50, fx:S=>{S.pMult*=2}},
+  {id:"pc12",n:"Dynasty",             d:"Start with £50,000",                cost:75, fx:S=>{S.startCash=50000}},
+  {id:"pc13",n:"Untouchable",         d:"Earnings x3 permanently",           cost:100,fx:S=>{S.pMult*=3}},
+  {id:"pc14",n:"The Godfather",       d:"Earnings x5 permanently",           cost:200,fx:S=>{S.pMult*=5}},
+  {id:"pc15",n:"Above The Law",       d:"Earnings x10 permanently",          cost:500,fx:S=>{S.pMult*=10}},
+];
+
+function chipsEarned(){
+  // Chips earned = based on total cash this run. Exponential formula like Cookie Clicker.
+  if(S.totalCash<10000)return 0;
+  return Math.floor(Math.pow(S.totalCash/10000,.5));
+}
+
+function canPrestige(){return chipsEarned()>=1}
+
+function doPrestige(){
+  if(!canPrestige())return;
+  sPrestige();
+  const earned=chipsEarned();
+  const keepChips=(S.chips||0)+earned;
+  const keepPUps=[...(S.pUps||[])];
+  const keepP=S.prestiges+1;
+  const keepPM=S.pMult;
+  const keepD=S.lastDaily;const keepDS=S.dailyStreak;
+  const keepW=S.whalesCaught;const keepBS=S.bestStreak;
+  const keepPClick=S.pClickMult||1;
+  const keepWhaleFreq=S.whaleFreq||1;
+  const keepStartCash=S.startCash||0;
+  const keepStartDealers=S.startDealers||0;
+  const keepStartTables=S.startTables||0;
+
+  Object.assign(S,{...DEF});
+  S.chips=keepChips;S.pUps=keepPUps;S.prestiges=keepP;S.pMult=keepPM;
+  S.lastDaily=keepD;S.dailyStreak=keepDS;S.whalesCaught=keepW;S.bestStreak=keepBS;
+  S.pClickMult=keepPClick;S.whaleFreq=keepWhaleFreq;
+  S.startCash=keepStartCash;S.startDealers=keepStartDealers;S.startTables=keepStartTables;
+
+  // Apply prestige start bonuses
+  S.cash=S.startCash||0;S.totalCash=S.cash;
+  if(S.startDealers)S.owned.dealer=S.startDealers;
+  if(S.startTables)S.owned.table=S.startTables;
+
+  tick("CASHED OUT. Earned "+earned+" chips. Total: "+S.chips+".");
+  sv();render();
+}
+
+function buyPrestigeUp(id){
+  const pu=PRESTIGE_UPS.find(x=>x.id===id);
+  if(!pu||(S.pUps||[]).includes(id)||(S.chips||0)<pu.cost)return;
+  S.chips-=pu.cost;
+  if(!S.pUps)S.pUps=[];
+  S.pUps.push(id);
+  pu.fx(S);
+  sBuy();tick("Prestige upgrade: "+pu.n+".");sv();render();
+}
+
+function sPrestige(){tn(440,.15,"sine",.12);setTimeout(()=>tn(554,.15,"sine",.1),100);setTimeout(()=>tn(659,.15,"sine",.1),200);setTimeout(()=>tn(880,.25,"sine",.14),300)}
+
+// ── Ticker ─────────────────────────────────────────────────────
+const TIPS=["The house always wins. Mostly.","A fool and his money are soon parted.","Know when to hold 'em.","The odds are in your favour. Slightly.","Every seat filled is money earned.","The bigger the floor, the bigger the take.","You can't lose if you own the table.","Fortune favours the house.","Someone out there is about to have a very bad night.","The game is rigged. You rigged it.","They come for the thrill. You come for the margin."];
+function tick(msg){
+  logs.push(msg);if(logs.length>40)logs.shift();
+  document.getElementById("ticker").textContent=msg;
+}
+
+let storeTab="buildings";
+function setTab(t){
+  storeTab=t;
+  document.querySelectorAll(".store-tab").forEach(el=>el.classList.remove("active"));
+  document.querySelectorAll(".store-tab").forEach(el=>{if(el.textContent.toLowerCase().includes(t))el.classList.add("active")});
+  render();
+}
+// setTab defined above
+
+// ── Render ─────────────────────────────────────────────────────
+function render(){
+  const cps=totalCPS();
+  document.getElementById("cashNum").textContent=$(S.cash);
+  document.getElementById("cps").textContent=cps>0?"earning "+$(cps)+" per second":"";
+
+  // Left info
+  let li="";
+  li+=`<div class="info-row"><span>Hands dealt</span><span class="val">${S.hands}</span></div>`;
+  li+=`<div class="info-row"><span>Per hand</span><span class="val">${$(clickValue())}</span></div>`;
+  if(S.whalesCaught>0)li+=`<div class="info-row"><span>Whales caught</span><span class="val">${S.whalesCaught}</span></div>`;
+  if(S.prestiges>0)li+=`<div class="info-row"><span>Prestige</span><span class="val">${S.pMult.toFixed(2)}x</span></div>`;
+  if((S.chips||0)>0)li+=`<div class="info-row"><span>Chips</span><span class="val" style="color:#fbbf24">${S.chips}</span></div>`;
+  document.getElementById("leftInfo").innerHTML=li;
+
+  // Middle: buildings owned
+  let bh="";
+  for(const b of BUILDINGS){
+    const n=own(b.id);if(n===0)continue;
+    const prod=bProd(b)*n;
+    bh+=`<div class="building-row"><span class="b-icon">${b.icon}</span><div class="b-info"><div class="b-name">${b.n}</div><div class="b-prod">each producing ${$(bProd(b))}, total ${$(prod)}</div></div><span class="b-count">${n}</span></div>`;
+  }
+  document.getElementById("buildings").innerHTML=bh;
+  document.getElementById("emptyMsg").style.display=bh?"none":"block";
+
+  // Right: store
+  // Upgrades row (icons)
+  const availU=UPGRADES.filter(u=>!S.upgrades.includes(u.id)&&(!u.req||u.req(S)));
+  let ur="";
+  for(const u of availU){
+    const locked=S.cash<u.cost;
+    ur+=`<div class="upgrade-icon${locked?" locked":""}" onclick="buyU('${u.id}')" title="${u.n}: ${u.desc} (${$(u.cost)})">${u.icon}</div>`;
+  }
+  document.getElementById("upgradesRow").innerHTML=ur;
+
+  // Store list
+  let sl="";
+  if(storeTab==="buildings"){
+    for(const b of BUILDINGS){
+      if(b.mw&&S.wins<b.mw)continue;
+      const c=bCost(b);const locked=S.cash<c;
+      sl+=`<div class="store-item${locked?" locked":""}" onclick="buyB('${b.id}')"><span class="s-icon">${b.icon}</span><div class="s-info"><div class="s-name">${b.n}</div><div class="s-desc">${b.desc}</div></div><div class="s-cost">${$(c)}</div><div class="s-owned">${own(b.id)||""}</div></div>`;
+    }
+  }else{
+    // Show purchased upgrades
+    for(const uid of S.upgrades){
+      const u=UPGRADES.find(x=>x.id===uid);
+      if(u)sl+=`<div class="store-item" style="opacity:.6"><span class="s-icon">${u.icon}</span><div class="s-info"><div class="s-name">${u.n}</div><div class="s-desc">${u.desc}</div></div><div class="s-owned">✓</div></div>`;
+    }
+    if(S.upgrades.length===0)sl+=`<div class="store-item"><div class="s-info"><div class="s-desc">No upgrades purchased yet.</div></div></div>`;
+  }
+
+  // Prestige tab
+  if(storeTab==="prestige"){
+    sl="";
+    const ce=chipsEarned();
+    sl+=`<div class="store-item" style="border-bottom:2px solid #4a2"><span class="s-icon">🎰</span><div class="s-info"><div class="s-name" style="color:#fbbf24">Chips: ${S.chips||0}</div><div class="s-desc">Cash out now for +${ce} chips (need ${$(10000)} total earned)</div></div></div>`;
+    if(canPrestige()){
+      sl+=`<div class="store-item" onclick="doPrestige()" style="background:#1a1a0a;border:1px solid #4a2;cursor:pointer"><span class="s-icon">💰</span><div class="s-info"><div class="s-name" style="color:#4ade80">Cash Out Now</div><div class="s-desc">Reset everything. Earn ${ce} chips. Keep prestige upgrades + daily streak.</div></div></div>`;
+    }
+    sl+=`<div class="store-header" style="margin-top:4px"><span>Prestige Upgrades</span></div>`;
+    for(const pu of PRESTIGE_UPS){
+      const owned=(S.pUps||[]).includes(pu.id);
+      const locked=!owned&&(S.chips||0)<pu.cost;
+      if(owned){
+        sl+=`<div class="store-item" style="opacity:.5"><span class="s-icon">✅</span><div class="s-info"><div class="s-name">${pu.n}</div><div class="s-desc">${pu.d}</div></div><div class="s-owned">✓</div></div>`;
+      }else{
+        sl+=`<div class="store-item${locked?" locked":""}" onclick="buyPrestigeUp('${pu.id}')"><span class="s-icon">🎰</span><div class="s-info"><div class="s-name">${pu.n}</div><div class="s-desc">${pu.d}</div></div><div class="s-cost" style="color:#fbbf24">${pu.cost} chips</div></div>`;
+      }
+    }
+  }
+
+  // Cash out hint at bottom of buildings tab
+  if(storeTab==="buildings"&&canPrestige()){
+    const ce=chipsEarned();
+    sl+=`<div class="store-item" onclick="setTab('prestige')" style="border-top:2px solid #4a2;margin-top:8px;cursor:pointer"><span class="s-icon">💰</span><div class="s-info"><div class="s-name" style="color:#fbbf24">Cash Out available (+${ce} chips)</div><div class="s-desc">Check the Prestige tab.</div></div></div>`;
+  }
+
+  document.getElementById("storeList").innerHTML=sl;
+}
+
+// ── Loop ───────────────────────────────────────────────────────
+let last=Date.now(),sT=0,rT=0;
+function loop(){
+  const now=Date.now(),dt=now-last;last=now;
+  autoTick(dt);
+  // Fast cash update
+  document.getElementById("cashNum").textContent=$(S.cash);
+  rT+=dt;if(rT>500){rT=0;render()}
+  sT+=dt;if(sT>15000){sT=0;sv()}
+  // Random ticker tips
+  if(Math.random()<.001)document.getElementById("ticker").textContent=TIPS[Math.floor(Math.random()*TIPS.length)];
+  requestAnimationFrame(loop);
+}
+
+// ── Offline ────────────────────────────────────────────────────
+(function(){
+  const el=Date.now()-S.lt;
+  if(el>30000){
+    const cps=totalCPS();
+    if(cps>0){
+      const secs=Math.min(el,8*3600000)/1000;
+      const earned=cps*secs*.5;// 50% offline efficiency
+      S.cash+=earned;S.totalCash+=earned;
+      const h=Math.floor(el/3600000),m=Math.floor((el%3600000)/60000);
+      tick("Away "+(h>0?h+"h "+m+"m":m+"m")+". Earned "+$(earned)+".");
+    }
+  }
+  checkDaily();
+  S.lt=Date.now();
+  tick("The House is open.");
+  render();sv();
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
