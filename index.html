@@ -3,7 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>House Edge</title>
+<meta name="description" content="Build a gambling empire from a single card table. Click, automate, expand, prestige. Free browser idle game.">
+<meta property="og:title" content="House Edge — Casino Idle Game">
+<meta property="og:description" content="Build a gambling empire from a single card table. Cookie Clicker meets casino management.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://playhouseedge.com">
+<meta name="theme-color" content="#0a0a12">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🂡</text></svg>">
+<title>House Edge — Casino Idle Game</title>
 <script type="text/javascript">(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window,document,"clarity","script","w515fysbtc");</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -122,12 +129,45 @@ body{font-family:Verdana,Geneva,sans-serif;background:#1a0a2e;color:#ddd;overflo
 /* ── Mobile: stack vertically ────────────────────────────────── */
 @media(max-width:800px){
   .game{flex-direction:column;height:auto;min-height:100dvh}
-  .left{flex:0 0 auto;padding:12px;min-height:280px}
-  .click-btn{width:140px;height:140px}
-  .click-btn .icon{font-size:36px}
-  .mid{flex:0 0 auto;min-height:120px;max-height:200px;border-left:none;border-right:none;border-top:2px solid #2a1a4a;border-bottom:2px solid #2a1a4a}
-  .right{flex:1;min-height:300px}
+  .left{flex:0 0 auto;padding:12px 12px 8px;min-height:auto}
+  .click-btn{width:120px;height:120px}
+  .click-btn .icon{font-size:32px}
+  .click-btn .label{font-size:11px;letter-spacing:2px}
+  .mid{flex:0 0 auto;min-height:80px;max-height:250px;border-left:none;border-right:none;border-top:2px solid #2a1a4a;border-bottom:2px solid #2a1a4a;overflow-y:auto}
+  .right{flex:1;min-height:300px;overflow-y:auto}
   .cash-num{font-size:22px}
+  .cash-label{font-size:8px}
+  .cps{font-size:10px;margin-bottom:6px}
+  .left-info{padding-top:4px}
+  .info-row{font-size:10px}
+  .ticker{font-size:9px;padding:4px 8px}
+  .store-item .s-icon{font-size:22px;width:28px;margin-right:8px}
+  .store-item .s-name{font-size:11px}
+  .store-item .s-cost{font-size:11px;min-width:60px}
+  .store-item .s-owned{font-size:16px;min-width:24px}
+  .store-header{font-size:10px;padding:6px 10px}
+  .store-tabs{overflow-x:auto}
+  .store-tab{font-size:9px;padding:5px 8px;white-space:nowrap}
+  .tab-badge{font-size:8px;padding:0px 4px}
+  .building-row{padding:5px 8px;min-height:36px}
+  .building-row .b-icon{font-size:18px;margin-right:6px;width:24px}
+  .building-row .b-name{font-size:10px}
+  .building-row .b-prod{font-size:8px}
+  .building-row .b-count{font-size:16px}
+  .whale{width:55px;height:55px;font-size:24px}
+  .float{font-size:14px}
+  .float.jack{font-size:18px}
+  .hint{font-size:9px;padding:4px 8px}
+}
+
+/* Extra small phones */
+@media(max-width:400px){
+  .click-btn{width:100px;height:100px}
+  .click-btn .icon{font-size:28px}
+  .click-btn .label{font-size:10px}
+  .cash-num{font-size:20px}
+  .store-item{padding:6px 8px}
+  .store-item .s-icon{font-size:18px;width:24px;margin-right:6px}
 }
 
 /* Scrollbar */
@@ -142,7 +182,7 @@ body{font-family:Verdana,Geneva,sans-serif;background:#1a0a2e;color:#ddd;overflo
   <!-- LEFT: Click area -->
   <div class="left" id="leftPanel">
     <div class="cash-display">
-      <div class="cash-num" id="cashNum">£500</div>
+      <div class="cash-num" id="cashNum">£0.00</div>
       <div class="cash-label">in the bank</div>
     </div>
     <div class="cps" id="cps"></div>
@@ -364,8 +404,11 @@ function deal(ev){
   const fl=document.createElement("div");
   fl.className="float"+(type==="l"?" loss":type==="j"?" jack":"");
   fl.textContent=(type==="l"?"-":"+")+$(Math.abs(amt));
-  fl.style.left=(ev.offsetX||100)+"px";fl.style.top=(ev.offsetY||100)+"px";
-  document.getElementById("leftPanel").appendChild(fl);
+  // Position floats near the cash display, not the click event (works on touch too)
+  const bankEl=document.querySelector(".cash-display");
+  fl.style.left=(30+Math.random()*40)+"%";fl.style.top="0px";
+  bankEl.style.position="relative";
+  bankEl.appendChild(fl);
   setTimeout(()=>fl.remove(),800);
   render();
 }
@@ -416,8 +459,10 @@ function spawnWhale(){
   whaleEl=document.createElement("div");
   whaleEl.className="whale";
   whaleEl.textContent="🐋";
-  whaleEl.style.left=Math.floor(20+Math.random()*200)+"px";
-  whaleEl.style.top=Math.floor(80+Math.random()*200)+"px";
+  const leftW=left.offsetWidth||300;
+  const leftH=left.offsetHeight||400;
+  whaleEl.style.left=Math.floor(10+Math.random()*(leftW-90))+"px";
+  whaleEl.style.top=Math.floor(60+Math.random()*(Math.min(leftH,350)-120))+"px";
   whaleEl.onclick=catchWhale;
   left.appendChild(whaleEl);
   whaleTimeout=setTimeout(()=>{if(whaleEl){whaleEl.remove();whaleEl=null}},12000);
