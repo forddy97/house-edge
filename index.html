@@ -324,7 +324,7 @@ const DEF={
   lt:Date.now(),
   tab:"buildings"
 };
-const SAVE_VERSION=2;// Increment this when we make breaking changes
+const SAVE_VERSION=3;// Increment this when we make breaking changes
 let S;try{const d=localStorage.getItem("houseG");const parsed=d?JSON.parse(d):null;if(parsed&&parsed.saveVersion===SAVE_VERSION){S={...DEF,...parsed}}else{S={...DEF};if(parsed)console.log("Save reset: version mismatch")}}catch{S={...DEF}}
 S.saveVersion=SAVE_VERSION;
 let logs=[];let whaleEl=null;let whaleTimeout=null;
