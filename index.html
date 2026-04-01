@@ -643,11 +643,15 @@ function render(){
   const nextLife=LIFESTYLE[LIFESTYLE.indexOf(currentLife)+1];
 
   if(S.totalCash>=500){
-    bh+=`<div class="building-row" style="border-top:2px solid #1a2e1a;margin-top:8px;padding-top:12px"><span class="b-icon">🏠</span><div class="b-info"><div class="b-name" style="color:#8a8">YOUR LIFE</div></div></div>`;
-    bh+=`<div class="building-row"><span class="b-icon">📍</span><div class="b-info"><div class="b-name">${currentLife.home}</div><div class="b-prod">Status: ${currentLife.status}</div></div></div>`;
+    const lifeIdx=LIFESTYLE.indexOf(currentLife);
+    const next1=LIFESTYLE[lifeIdx+1];
+    const next2=LIFESTYLE[lifeIdx+2];
+    bh+=`<div class="building-row" style="border-top:2px solid #1a2e1a;margin-top:8px;padding-top:12px"><span class="b-icon">🏠</span><div class="b-info"><div class="b-name" style="color:#8a8">YOUR LIFE — ${currentLife.status}</div></div></div>`;
+    bh+=`<div class="building-row"><span class="b-icon">📍</span><div class="b-info"><div class="b-name">${currentLife.home}</div></div></div>`;
     bh+=`<div class="building-row"><span class="b-icon">🚗</span><div class="b-info"><div class="b-name">${currentLife.car}</div></div></div>`;
     bh+=`<div class="building-row"><span class="b-icon">❤️</span><div class="b-info"><div class="b-name">${currentLife.partner}</div></div></div>`;
-    if(nextLife)bh+=`<div class="building-row"><span class="b-icon">⬆️</span><div class="b-info"><div class="b-name" style="color:#555">Next: ${nextLife.home} at ${$(nextLife.cash)}</div></div></div>`;
+    if(next1)bh+=`<div class="building-row" style="opacity:.55"><span class="b-icon">⬆️</span><div class="b-info"><div class="b-name">${next1.home} · ${next1.car} · ${next1.partner}</div><div class="b-prod">at ${$(next1.cash)} total earned</div></div></div>`;
+    if(next2)bh+=`<div class="building-row" style="opacity:.3"><span class="b-icon">🔒</span><div class="b-info"><div class="b-name">${next2.home} · ${next2.car} · ${next2.partner}</div><div class="b-prod">at ${$(next2.cash)} total earned</div></div></div>`;
   }
 
   document.getElementById("buildings").innerHTML=bh;
@@ -655,9 +659,10 @@ function render(){
 
   // Right: store
   // Upgrades row (icons)
-  const availU=UPGRADES.filter(u=>!S.upgrades.includes(u.id)&&(!u.req||u.req(S)));
+  // Only show upgrades the player has unlocked requirements for AND can see (within 50x cash)
+  const availU=UPGRADES.filter(u=>!S.upgrades.includes(u.id)&&(!u.req||u.req(S))&&u.cost<=Math.max(S.totalCash*50,S.cash*100));
   let ur="";
-  for(const u of availU){
+  for(const u of availU.slice(0,12)){// Max 12 visible at once
     const locked=S.cash<u.cost;
     ur+=`<div class="upgrade-icon${locked?" locked":""}" onclick="buyU('${u.id}')" title="${u.n}: ${u.desc} (${$(u.cost)})">${u.icon}</div>`;
   }
@@ -666,10 +671,23 @@ function render(){
   // Store list
   let sl="";
   if(storeTab==="buildings"){
+    let shownLocked=false;
     for(const b of BUILDINGS){
       if(b.mw&&S.wins<b.mw)continue;
-      const c=bCost(b);const locked=S.cash<c;
-      sl+=`<div class="store-item${locked?" locked":""}" onclick="buyB('${b.id}')"><span class="s-icon">${b.icon}</span><div class="s-info"><div class="s-name">${b.n}</div><div class="s-desc">${b.desc}</div></div><div class="s-cost">${$(c)}</div><div class="s-owned">${own(b.id)||""}</div></div>`;
+      const c=bCost(b);
+      const locked=S.cash<c;
+      const owned=own(b.id);
+      // Only show if: owned at least 1, OR affordable, OR the next one the player is saving toward
+      // Hide buildings that cost more than 100x current cash AND aren't owned (too far away)
+      if(owned===0&&c>S.totalCash*10&&c>S.cash*100){
+        // Show one locked building as a teaser, then stop
+        if(!shownLocked){
+          sl+=`<div class="store-item locked"><span class="s-icon">🔒</span><div class="s-info"><div class="s-name">${b.n}</div><div class="s-desc">${b.desc}</div></div><div class="s-cost">${$(c)}</div></div>`;
+          shownLocked=true;
+        }
+        continue;
+      }
+      sl+=`<div class="store-item${locked?" locked":""}" onclick="buyB('${b.id}')"><span class="s-icon">${b.icon}</span><div class="s-info"><div class="s-name">${b.n}</div><div class="s-desc">${b.desc}</div></div><div class="s-cost">${$(c)}</div><div class="s-owned">${owned||""}</div></div>`;
     }
   }else{
     // Show purchased upgrades
