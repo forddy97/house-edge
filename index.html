@@ -725,7 +725,7 @@ function render(){
   for(let i=0;i<LIFESTYLE_STEPS.length;i++){
     if(S.totalCash>=LIFESTYLE_STEPS[i].cash){life[LIFESTYLE_STEPS[i].field]=LIFESTYLE_STEPS[i].val;lastStepIdx=i}
   }
-  const nextSteps=LIFESTYLE_STEPS.filter((s,i)=>i>lastStepIdx).slice(0,2);
+  const nextSteps=LIFESTYLE_STEPS.filter((s,i)=>i>lastStepIdx).slice(0,3);
 
   if(S.totalCash>=500){
     const fieldIcons={home:"📍",car:"🚗",partner:"❤️",status:"📊",watch:"⌚",outfit:"👔",holiday:"✈️",followers:"📱"};
@@ -741,7 +741,7 @@ function render(){
     for(let i=0;i<nextSteps.length;i++){
       const ns=nextSteps[i];
       const label=fieldLabels[ns.field]||ns.field;
-      const opacity=i===0?.55:.3;
+      const opacity=i===0?.55:i===1?.35:.2;
       bh+=`<div class="building-row" style="opacity:${opacity}"><span class="b-icon">${i===0?"⬆️":"🔒"}</span><div class="b-info"><div class="b-name">${label}: ${ns.val}</div><div class="b-prod">at ${$(ns.cash)} total earned</div></div></div>`;
     }
   }
@@ -775,7 +775,7 @@ function render(){
   if(storeTab==="buildings"){
     // First building hint
     if(own("dealer")===0&&S.cash>=15&&!S.hints.buildings){sl+=`<div class="hint">Buildings earn cash automatically. Buy your first Dealer to start.</div>`;S.hints.buildings=true;sv()}
-    let shownLocked=false;
+    let shownLocked=0;
     for(const b of BUILDINGS){
       if(b.mw&&S.wins<b.mw)continue;
       const c=bCost(b);
@@ -784,10 +784,11 @@ function render(){
       // Only show if: owned at least 1, OR affordable, OR the next one the player is saving toward
       // Hide buildings that cost more than 100x current cash AND aren't owned (too far away)
       if(owned===0&&c>S.totalCash*10&&c>S.cash*100){
-        // Show one locked building as a teaser, then stop
-        if(!shownLocked){
-          sl+=`<div class="store-item locked"><span class="s-icon">🔒</span><div class="s-info"><div class="s-name">${b.n}</div><div class="s-desc">${b.desc}</div></div><div class="s-cost">${$(c)}</div></div>`;
-          shownLocked=true;
+        // Show up to 3 locked buildings as teasers
+        if(shownLocked<3){
+          const lockOpacity=shownLocked===0?.4:shownLocked===1?.25:.15;
+          sl+=`<div class="store-item locked" style="opacity:${lockOpacity}"><span class="s-icon">🔒</span><div class="s-info"><div class="s-name">${b.n}</div><div class="s-desc">${b.desc}</div></div><div class="s-cost">${$(c)}</div></div>`;
+          shownLocked++;
         }
         continue;
       }
