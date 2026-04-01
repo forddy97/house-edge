@@ -623,13 +623,8 @@ function render(){
   if((S.chips||0)>0)li+=`<div class="info-row"><span>Chips</span><span class="val" style="color:#fbbf24">${S.chips}</span></div>`;
   document.getElementById("leftInfo").innerHTML=li;
 
-  // Middle: buildings owned
+  // Middle: lifestyle only
   let bh="";
-  for(const b of BUILDINGS){
-    const n=own(b.id);if(n===0)continue;
-    const prod=bProd(b)*n;
-    bh+=`<div class="building-row"><span class="b-icon">${b.icon}</span><div class="b-info"><div class="b-name">${b.n}</div><div class="b-prod">each producing ${$(bProd(b))}, total ${$(prod)}</div></div><span class="b-count">${n}</span></div>`;
-  }
   // Lifestyle panel
   // Each milestone only changes ONE thing — staggered like real life
   const LIFESTYLE_STEPS=[
@@ -753,6 +748,7 @@ function render(){
 
   document.getElementById("buildings").innerHTML=bh;
   document.getElementById("emptyMsg").style.display=bh?"none":"block";
+  document.getElementById("emptyMsg").textContent=S.totalCash<500?"Deal hands to start building your life.":"Your life so far...";
 
   // Right: store
   // Upgrades row (icons)
