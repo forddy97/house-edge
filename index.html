@@ -268,14 +268,34 @@ body{font-family:Verdana,Geneva,sans-serif;background:#1a0a2e;color:#ddd;overflo
 
 /* Mobile adjustments for casino systems */
 @media(max-width:800px){
-  .casino-systems{margin-top:4px}
-  .sys-section{padding:5px 7px;margin-bottom:4px}
-  .sys-label{font-size:8px}
-  .sys-val{font-size:10px}
+  .casino-systems{margin-top:2px}
+  .sys-section{padding:3px 6px;margin-bottom:2px}
+  .sys-label{font-size:7px;margin-bottom:1px}
+  .sys-val{font-size:9px}
+  .fee-controls{gap:6px;margin:1px 0}
+  .fee-adj-btn{width:24px;height:24px;font-size:14px;border-width:1px}
+  .fee-amount{font-size:14px;min-width:50px}
   .fee-btn{font-size:8px;padding:3px 1px}
-  .fee-desc{font-size:7px}
-  .sat-emoji{font-size:14px}
-  .equil-summary{font-size:7px}
+  .fee-desc{display:none}
+  .cap-bar-wrap{height:10px;margin-top:2px}
+  .cap-bar-text{font-size:6px}
+  .sat-display{gap:4px;margin-top:2px}
+  .sat-emoji{font-size:12px}
+  .sat-bar-wrap{height:7px}
+  .sat-bar-text{font-size:6px}
+  .sat-status{font-size:7px;margin-top:1px}
+  .equil-summary{font-size:6px;padding:2px 4px;margin-top:2px}
+}
+@media(max-width:400px){
+  .casino-systems{margin-top:1px}
+  .sys-section{padding:2px 5px;margin-bottom:1px}
+  .fee-controls{gap:4px;margin:0}
+  .fee-adj-btn{width:20px;height:20px;font-size:12px}
+  .fee-amount{font-size:12px;min-width:40px}
+  .cap-bar-wrap{height:8px}
+  .sat-emoji{font-size:10px}
+  .sat-bar-wrap{height:6px}
+  .equil-summary{font-size:6px;padding:1px 3px;margin-top:1px}
 }
 </style>
 </head>
@@ -497,6 +517,7 @@ const DEF={
   // Prestige
   prestiges:0,pMult:1,chips:0,pUps:[],pClickMult:1,whaleFreq:1,startCash:0,startDealers:0,startTables:0,globalMult:1,
   seenUpgrades:[],hints:{},
+  nightManagerTier:0,extendedHoursTier:0,
   lt:Date.now(),
   tab:"buildings",
   // Casino systems (interconnected equilibrium)
@@ -530,6 +551,9 @@ let S;try{
     if(S.maxCapacity===undefined)S.maxCapacity=50;
     if(S.satisfaction===undefined)S.satisfaction=50;
     if(S.expansions===undefined)S.expansions=0;
+    // Offline upgrade tiers backwards compat
+    if(S.nightManagerTier===undefined)S.nightManagerTier=0;
+    if(S.extendedHoursTier===undefined)S.extendedHoursTier=0;
   }else{S={...DEF}}
 }catch{S={...DEF}}
 S.saveVersion=SAVE_VERSION;
@@ -859,6 +883,15 @@ const PRESTIGE_UPS=[
   {id:"pc23",n:"Transcendence",      d:"Earnings x100 permanently",         cost:10000,fx:S=>{S.pMult*=100}},
   {id:"pc24",n:"Singularity",        d:"Earnings x1000 permanently",        cost:50000,fx:S=>{S.pMult*=1000}},
   {id:"pc25",n:"Omnipotence",        d:"Earnings x10000 permanently",       cost:250000,fx:S=>{S.pMult*=10000}},
+  // ── Tiered prestige upgrades (offline earnings) ──
+  {id:"nm1",n:"Night Manager I",     d:"Offline efficiency: 50% → 65%",     cost:5,   fx:S=>{S.nightManagerTier=1},tier:1,group:"nightManager"},
+  {id:"nm2",n:"Night Manager II",    d:"Offline efficiency: 65% → 80%",     cost:15,  fx:S=>{S.nightManagerTier=2},tier:2,group:"nightManager",req:S=>(S.nightManagerTier||0)>=1},
+  {id:"nm3",n:"Night Manager III",   d:"Offline efficiency: 80% → 90%",     cost:50,  fx:S=>{S.nightManagerTier=3},tier:3,group:"nightManager",req:S=>(S.nightManagerTier||0)>=2},
+  {id:"nm4",n:"Night Manager IV",    d:"Offline efficiency: 90% → 95%",     cost:150, fx:S=>{S.nightManagerTier=4},tier:4,group:"nightManager",req:S=>(S.nightManagerTier||0)>=3},
+  {id:"eh1",n:"Extended Hours I",    d:"Max offline time: 8h → 16h",        cost:3,   fx:S=>{S.extendedHoursTier=1},tier:1,group:"extendedHours"},
+  {id:"eh2",n:"Extended Hours II",   d:"Max offline time: 16h → 24h",       cost:10,  fx:S=>{S.extendedHoursTier=2},tier:2,group:"extendedHours",req:S=>(S.extendedHoursTier||0)>=1},
+  {id:"eh3",n:"Extended Hours III",  d:"Max offline time: 24h → 36h",       cost:30,  fx:S=>{S.extendedHoursTier=3},tier:3,group:"extendedHours",req:S=>(S.extendedHoursTier||0)>=2},
+  {id:"eh4",n:"Extended Hours IV",   d:"Max offline time: 36h → 48h",       cost:100, fx:S=>{S.extendedHoursTier=4},tier:4,group:"extendedHours",req:S=>(S.extendedHoursTier||0)>=3},
 ];
 
 function chipsEarned(){
@@ -885,6 +918,8 @@ function doPrestige(){
   const keepStartDealers=S.startDealers||0;
   const keepStartTables=S.startTables||0;
   const keepGlobalMult=S.globalMult||1;
+  const keepNightManager=S.nightManagerTier||0;
+  const keepExtendedHours=S.extendedHoursTier||0;
 
   Object.assign(S,{...DEF});
   S.chips=keepChips;S.pUps=keepPUps;S.prestiges=keepP;S.pMult=keepPM;
@@ -892,6 +927,7 @@ function doPrestige(){
   S.pClickMult=keepPClick;S.whaleFreq=keepWhaleFreq;
   S.startCash=keepStartCash;S.startDealers=keepStartDealers;S.startTables=keepStartTables;
   S.globalMult=keepGlobalMult;
+  S.nightManagerTier=keepNightManager;S.extendedHoursTier=keepExtendedHours;
 
   // Apply prestige start bonuses
   S.cash=S.startCash||0;S.totalCash=S.cash;
@@ -907,6 +943,7 @@ function doPrestige(){
 function buyPrestigeUp(id){
   const pu=PRESTIGE_UPS.find(x=>x.id===id);
   if(!pu||(S.pUps||[]).includes(id)||(S.chips||0)<pu.cost)return;
+  if(pu.req&&!pu.req(S))return;
   S.chips-=pu.cost;
   if(!S.pUps)S.pUps=[];
   S.pUps.push(id);
@@ -1358,11 +1395,15 @@ function render(){
     sl+=`<div class="store-header" style="margin-top:4px"><span>Prestige Upgrades</span></div>`;
     for(const pu of PRESTIGE_UPS){
       const owned=(S.pUps||[]).includes(pu.id);
-      const locked=!owned&&(S.chips||0)<pu.cost;
+      const reqMet=!pu.req||pu.req(S);
+      const locked=!owned&&((S.chips||0)<pu.cost||!reqMet);
       if(owned){
         sl+=`<div class="store-item" style="opacity:.5"><span class="s-icon">✅</span><div class="s-info"><div class="s-name">${pu.n}</div><div class="s-desc">${pu.d}</div></div><div class="s-owned">✓</div></div>`;
+      }else if(!reqMet){
+        // Hide upgrades whose prerequisite tier isn't owned yet
+        continue;
       }else{
-        sl+=`<div class="store-item${locked?" locked":""}" onclick="buyPrestigeUp('${pu.id}')"><span class="s-icon">🎰</span><div class="s-info"><div class="s-name">${pu.n}</div><div class="s-desc">${pu.d}</div></div><div class="s-cost" style="color:#fbbf24">${pu.cost} chips</div></div>`;
+        sl+=`<div class="store-item${locked?" locked":""}" onclick="buyPrestigeUp('${pu.id}')"><span class="s-icon">${pu.group?"🌙":"🎰"}</span><div class="s-info"><div class="s-name">${pu.n}</div><div class="s-desc">${pu.d}</div></div><div class="s-cost" style="color:#fbbf24">${pu.cost} chips</div></div>`;
       }
     }
   }
@@ -1393,6 +1434,16 @@ function loop(){
   // Random ticker tips
   if(Math.random()<.003)document.getElementById("ticker").textContent=TIPS[Math.floor(Math.random()*TIPS.length)];
   requestAnimationFrame(loop);
+}
+
+// ── Offline Upgrade Helpers ────────────────────────────────
+function offlineEfficiency(){
+  const tier=S.nightManagerTier||0;
+  return [.5,.65,.8,.9,.95][tier];
+}
+function maxOfflineHours(){
+  const tier=S.extendedHoursTier||0;
+  return [8,16,24,36,48][tier];
 }
 
 // ── Welcome Back (Offline Earnings) ────────────────────────
@@ -1431,7 +1482,7 @@ function showWelcomeBack(elapsed,earned){
     +'<h2>\uD83C\uDFB0 Welcome Back!</h2>'
     +'<div class="wb-sub">Your casino earned while you were away</div>'
     +'<div class="wb-amount">'+$(earned)+'</div>'
-    +'<div class="wb-efficiency">50% autopilot efficiency \u00B7 '+durStr+' away</div>'
+    +'<div class="wb-efficiency">'+Math.round(offlineEfficiency()*100)+'% autopilot efficiency \u00B7 '+durStr+' away</div>'
     +'<div class="wb-stats">'
     +'<div class="wb-stat"><div class="wb-stat-val">'+capPct+'%</div><div class="wb-stat-label">Capacity</div></div>'
     +'<div class="wb-stat"><div class="wb-stat-val">'+sat+'%</div><div class="wb-stat-label">Satisfaction</div></div>'
@@ -1455,16 +1506,16 @@ function showWelcomeBack(elapsed,earned){
   checkDaily();
   S.lt=Date.now();
   if(el>60000&&cps>0){
-    // Away 60s+: show Welcome Back modal (capped at 8hrs, 50% efficiency)
-    const secs=Math.min(el,8*3600000)/1000;
-    const earned=cps*secs*.5;
+    // Away 60s+: show Welcome Back modal (capped by Extended Hours, efficiency from Night Manager)
+    const secs=Math.min(el,maxOfflineHours()*3600000)/1000;
+    const earned=cps*secs*offlineEfficiency();
     render();
     showWelcomeBack(el,earned);
   }else{
     // Quick refresh or no CPS — silent
     if(el>10000&&cps>0){
-      const secs=Math.min(el,8*3600000)/1000;
-      const earned=cps*secs*.5;
+      const secs=Math.min(el,maxOfflineHours()*3600000)/1000;
+      const earned=cps*secs*offlineEfficiency();
       S.cash+=earned;S.totalCash+=earned;
     }
     tick("The House is open.");
