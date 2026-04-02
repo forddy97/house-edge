@@ -217,9 +217,11 @@ body{font-family:Verdana,Geneva,sans-serif;background:#1a0a2e;color:#ddd;overflo
 
 /* Entry fee buttons */
 .fee-buttons{display:flex;gap:3px;flex-wrap:wrap;margin-top:4px}
-.fee-slider{width:100%;margin:4px 0;accent-color:#4ade80;cursor:pointer}
-.fee-slider::-webkit-slider-thumb{cursor:pointer}
-.fee-amount{text-align:center;font-size:16px;font-weight:700;color:#4ade80;margin:2px 0}
+.fee-controls{display:flex;align-items:center;justify-content:center;gap:10px;margin:4px 0}
+.fee-adj-btn{width:32px;height:32px;border-radius:50%;border:2px solid #4ade80;background:transparent;color:#4ade80;font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.fee-adj-btn:hover{background:#1a3a1a}
+.fee-adj-btn:active{background:#2a5a2a}
+.fee-amount{font-size:20px;font-weight:700;color:#4ade80;min-width:70px;text-align:center}
 .fee-btn{display:none;
   flex:1;min-width:36px;padding:4px 2px;border:1px solid #2a1a4a;border-radius:4px;
   background:#1a0e2e;color:#aaa;font-size:9px;cursor:pointer;text-align:center;
@@ -295,9 +297,12 @@ body{font-family:Verdana,Geneva,sans-serif;background:#1a0a2e;color:#ddd;overflo
     <!-- Casino Systems — Interconnected Equilibrium -->
     <div class="casino-systems" id="casinoSystems" style="display:none">
       <div class="sys-section" id="feeSection">
-        <div class="sys-label"><span>Entry Fee</span><span class="sys-val" id="feeVal">£10</span></div>
-        <input type="range" class="fee-slider" id="feeSlider" min="1" max="100" value="1" oninput="setEntryFee(this.value*10)">
-        <div style="display:flex;justify-content:space-between;font-size:8px;color:#666;margin-top:-2px"><span>£10</span><span>£1,000</span></div>
+        <div class="sys-label"><span>Entry Fee</span></div>
+        <div class="fee-controls">
+          <button class="fee-adj-btn" onclick="setEntryFee(S.entryFee-10)">−</button>
+          <span class="fee-amount" id="feeVal">£10</span>
+          <button class="fee-adj-btn" onclick="setEntryFee(S.entryFee+10)">+</button>
+        </div>
         <div class="fee-desc" id="feeDesc">Low fee — steady flow of customers</div>
       </div>
       <div class="sys-section" id="capSection">
@@ -1000,10 +1005,8 @@ function render(){
   const sysEl=document.getElementById("casinoSystems");
   if(totalBuildings>=1){
     sysEl.style.display="block";
-    // Entry fee slider
-    const slider=document.getElementById("feeSlider");
+    // Entry fee display
     const fee=S.entryFee||10;
-    slider.value=fee/10;
     document.getElementById("feeVal").textContent="£"+fee.toLocaleString();
     const effInc=feeIncomeMult().toFixed(1);
     const effCust=feeCustMult().toFixed(2);
