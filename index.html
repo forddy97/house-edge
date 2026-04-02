@@ -236,8 +236,8 @@ body{font-family:Verdana,Geneva,sans-serif;background:#1a0a2e;color:#ddd;overflo
 .cap-bar-fill.high{background:linear-gradient(90deg,#daa520,#fbbf24)}
 .cap-bar-fill.full{background:linear-gradient(90deg,#ef4444,#cc2222)}
 /* Sweet spot markers on capacity bar */
-.cap-sweet-zone{position:absolute;top:0;bottom:0;border-left:1px dashed rgba(74,222,128,.4);border-right:1px dashed rgba(74,222,128,.4);background:rgba(74,222,128,.06);pointer-events:none}
-.cap-sweet-label{position:absolute;top:-10px;font-size:6px;color:#4ade80;opacity:.7;pointer-events:none;white-space:nowrap}
+.cap-sweet-zone{display:none}
+.cap-sweet-label{display:none}
 
 /* Satisfaction display */
 .sat-display{display:flex;align-items:center;gap:6px;margin-top:4px}
@@ -1109,7 +1109,7 @@ function render(){
       }else if(sat<40){
         eqText="Satisfaction dropping. Adjust fee to improve capacity balance";eqClass="warn";
       }else{
-        eqText="Income: "+$(income)+"/s. Adjust fee to find the sweet spot";eqClass="warn";
+        eqText="Income: "+$(income)+"/s. Watch your satisfaction and capacity.";eqClass="warn";
       }
       eqEl.textContent=eqText;
       eqEl.className="equil-summary"+(eqClass?" "+eqClass:"");
