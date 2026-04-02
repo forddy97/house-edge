@@ -320,7 +320,10 @@ body{font-family:Verdana,Geneva,sans-serif;background:#1a0a2e;color:#ddd;overflo
       <div class="label">Deal</div>
     </div>
 
-    <button style="margin:6px 0;padding:4px 16px;background:rgba(251,191,36,.15);border:1px solid #fbbf24;color:#fbbf24;border-radius:4px;font-size:10px;cursor:pointer;letter-spacing:1px;text-shadow:0 0 6px rgba(251,191,36,.3)" onclick="sv();this.textContent='✓ Saved!';this.style.background='rgba(74,222,128,.2)';this.style.borderColor='#4ade80';this.style.color='#4ade80';setTimeout(()=>{this.textContent='Save';this.style.background='rgba(251,191,36,.15)';this.style.borderColor='#fbbf24';this.style.color='#fbbf24'},1500)">Save</button>
+    <div style="display:flex;gap:6px;margin:6px 0;align-items:center">
+      <button style="padding:4px 16px;background:rgba(251,191,36,.15);border:1px solid #fbbf24;color:#fbbf24;border-radius:4px;font-size:10px;cursor:pointer;letter-spacing:1px;text-shadow:0 0 6px rgba(251,191,36,.3)" onclick="sv();this.textContent='✓ Saved!';this.style.background='rgba(74,222,128,.2)';this.style.borderColor='#4ade80';this.style.color='#4ade80';setTimeout(()=>{this.textContent='Save';this.style.background='rgba(251,191,36,.15)';this.style.borderColor='#fbbf24';this.style.color='#fbbf24'},1500)">Save</button>
+      <button id="musicBtn" style="padding:4px 8px;background:none;border:1px solid #555;color:#ddd;border-radius:4px;font-size:14px;cursor:pointer;opacity:.5" onclick="toggleMusic()" title="Toggle music">🎵</button>
+    </div>
 
     <!-- Casino Systems — Interconnected Equilibrium -->
     <div class="casino-systems" id="casinoSystems" style="display:none">
@@ -385,6 +388,59 @@ body{font-family:Verdana,Geneva,sans-serif;background:#1a0a2e;color:#ddd;overflo
 // Sound
 let _a;function ac(){if(!_a)_a=new(window.AudioContext||window.webkitAudioContext)();if(_a.state==="suspended")_a.resume();return _a}
 function tn(f,d,t="sine",v=.06){try{const c=ac(),o=c.createOscillator(),g=c.createGain();o.type=t;o.frequency.value=f;g.gain.setValueAtTime(v,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+d)}catch{}}
+
+// ── Ambient Casino Music ──
+const MUSIC_KEY="he_music";
+let musicPlaying=false,musicGain=null,musicNodes=[],musicTimer=null,chordIdx=0;
+// Smooth jazz/lounge chords — Am7, Dm7, G7, Cmaj7, Fmaj7, Bm7b5, E7
+const JAZZ=[
+  [220,261.63,329.63,392],    // Am7
+  [293.66,349.23,440,523.25], // Dm7
+  [196,246.94,293.66,349.23], // G7
+  [261.63,329.63,392,493.88], // Cmaj7
+  [174.61,220,261.63,329.63], // Fmaj7
+  [246.94,293.66,349.23,440], // Bm7b5
+  [164.81,207.65,261.63,311.13]// E7
+];
+function musicPad(freq,ctx,dest){
+  const o=ctx.createOscillator(),g=ctx.createGain(),f=ctx.createBiquadFilter();
+  o.type="triangle";o.frequency.value=freq;
+  f.type="lowpass";f.frequency.value=600;f.Q.value=0.3;
+  g.gain.value=0;o.connect(f);f.connect(g);g.connect(dest);o.start();
+  musicNodes.push({o,g});return{o,g};
+}
+function musicChord(chord){
+  const ctx=ac();if(!ctx)return;const now=ctx.currentTime;
+  for(const n of musicNodes){n.g.gain.setTargetAtTime(0,now,1.5);try{n.o.stop(now+5)}catch{}}
+  musicNodes=[];
+  for(const freq of chord){
+    const p=musicPad(freq,ctx,musicGain);
+    p.g.gain.setTargetAtTime(.04,now,1.5);
+    const p2=musicPad(freq*2,ctx,musicGain);
+    p2.g.gain.setTargetAtTime(.012,now,1.5);
+  }
+}
+function startMusic(){
+  if(musicPlaying)return;const ctx=ac();if(!ctx)return;
+  musicPlaying=true;
+  if(!musicGain){musicGain=ctx.createGain();musicGain.connect(ctx.destination)}
+  musicGain.gain.setTargetAtTime(1,ctx.currentTime,2);
+  chordIdx=0;musicChord(JAZZ[0]);
+  musicTimer=setInterval(()=>{if(!musicPlaying)return;chordIdx=(chordIdx+1)%JAZZ.length;musicChord(JAZZ[chordIdx])},7000);
+}
+function stopMusic(){
+  if(!musicPlaying)return;musicPlaying=false;
+  if(musicTimer){clearInterval(musicTimer);musicTimer=null}
+  if(musicGain){const ctx=ac();musicGain.gain.setTargetAtTime(0,ctx.currentTime,1)}
+  setTimeout(()=>{for(const n of musicNodes){try{n.o.stop()}catch{}}musicNodes=[]},3000);
+}
+function toggleMusic(){
+  const btn=document.getElementById("musicBtn");
+  if(musicPlaying){stopMusic();btn.textContent="🎵";btn.style.opacity=".5";try{localStorage.setItem(MUSIC_KEY,"0")}catch{}}
+  else{startMusic();btn.textContent="🎵";btn.style.opacity="1";try{localStorage.setItem(MUSIC_KEY,"1")}catch{}}
+}
+// Auto-start if previously enabled (needs user gesture)
+document.addEventListener("click",function _ms(){try{if(localStorage.getItem(MUSIC_KEY)==="1"){startMusic();const b=document.getElementById("musicBtn");if(b)b.style.opacity="1"}}catch{}document.removeEventListener("click",_ms)},{once:true});
 function sClick(){tn(800,.03,"square",.03)}
 function sWin(){tn(660,.05,"sine",.07);setTimeout(()=>tn(880,.06,"sine",.05),30)}
 function sLose(){tn(220,.04,"triangle",.04)}
