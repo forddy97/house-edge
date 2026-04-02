@@ -234,7 +234,7 @@ function sWhale(){tn(440,.08,"sine",.08);setTimeout(()=>tn(660,.08,"sine",.07),5
 
 // ── Buildings (like Cookie Clicker's Cursor, Grandma, Farm...) ──
 const BUILDINGS=[
-  {id:"dealer",n:"Dealer",        icon:"🂡",desc:"Deals hands automatically.",       baseCost:15,    baseProd:.1,  mw:0},
+  {id:"dealer",n:"Dealer",        icon:"🂡",desc:"Deals hands automatically.",       baseCost:15,    baseProd:.2,  mw:0},
   {id:"table", n:"Extra Table",   icon:"🎲",desc:"More tables, more capacity.",       baseCost:100,   baseProd:.5,  mw:0},
   {id:"bouncer",n:"Bouncer",      icon:"🕴️",desc:"Keeps the riff-raff out.",          baseCost:1100,  baseProd:4,   mw:0},
   {id:"bar",   n:"Bar",           icon:"🍸",desc:"Punters drink, punters stay.",       baseCost:12000, baseProd:20,  mw:0},
@@ -367,12 +367,35 @@ const DEF={
   lt:Date.now(),
   tab:"buildings"
 };
-const SAVE_VERSION=3;// Increment this when we make breaking changes
-let S;try{const d=localStorage.getItem("houseG");const parsed=d?JSON.parse(d):null;if(parsed&&parsed.saveVersion===SAVE_VERSION){S={...DEF,...parsed}}else{S={...DEF};if(parsed)console.log("Save reset: version mismatch")}}catch{S={...DEF}}
+const SAVE_VERSION=4;
+let S;try{
+  const d=localStorage.getItem("houseG");
+  const parsed=d?JSON.parse(d):null;
+  if(parsed){
+    // Always load saves — merge with defaults so new keys get default values
+    S={...DEF,...parsed};
+    // Ensure nested objects are merged properly (owned, buildingMult, hints)
+    S.owned={...(DEF.owned||{}),...(parsed.owned||{})};
+    S.buildingMult={...(DEF.buildingMult||{}),...(parsed.buildingMult||{})};
+    S.hints={...(DEF.hints||{}),...(parsed.hints||{})};
+    // Ensure arrays exist
+    if(!Array.isArray(S.upgrades))S.upgrades=[];
+    if(!Array.isArray(S.pUps))S.pUps=[];
+    if(!Array.isArray(S.seenUpgrades))S.seenUpgrades=[];
+    // Ensure numeric fields have sane defaults
+    S.pMult=S.pMult||1;S.globalMult=S.globalMult||1;S.clickMult=S.clickMult||1;
+    S.pClickMult=S.pClickMult||1;S.whaleFreq=S.whaleFreq||1;
+    S.startCash=S.startCash||0;S.startDealers=S.startDealers||0;S.startTables=S.startTables||0;
+  }else{S={...DEF}}
+}catch{S={...DEF}}
 S.saveVersion=SAVE_VERSION;
 let logs=[];let whaleEl=null;let whaleTimeout=null;
 
-function sv(){S.lt=Date.now();localStorage.setItem("houseG",JSON.stringify(S))}
+function sv(){S.lt=Date.now();try{localStorage.setItem("houseG",JSON.stringify(S))}catch(e){console.warn("Save failed:",e)}}
+// Save on tab close / navigate away
+window.addEventListener("beforeunload",()=>{sv()});
+// Save on visibility change (mobile tab switch)
+document.addEventListener("visibilitychange",()=>{if(document.hidden)sv()});
 function $(n){if(n<0)return"-"+$(-n);if(n>=1e12)return"£"+(n/1e12).toFixed(2)+"T";if(n>=1e9)return"£"+(n/1e9).toFixed(2)+"B";if(n>=1e6)return"£"+(n/1e6).toFixed(2)+"M";if(n>=1000)return"£"+n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,",");return"£"+n.toFixed(2)}
 function own(id){return S.owned[id]||0}
 function bMult(id){return S.buildingMult[id]||1}
@@ -387,7 +410,7 @@ function totalCPS(){
   for(const b of BUILDINGS){const n=own(b.id);if(n>0)t+=bProd(b)*n}
   return t;
 }
-function clickValue(){return(1+totalCPS()*.05)*S.clickMult*S.pMult*(S.pClickMult||1)}
+function clickValue(){return(1.5+totalCPS()*.05)*S.clickMult*S.pMult*(S.pClickMult||1)}
 
 // ── Deal (click) ───────────────────────────────────────────────
 function deal(ev){
@@ -487,7 +510,7 @@ function catchWhale(){
     S.cash+=bonus;S.totalCash+=bonus;
     tick("Whale dropped "+$(bonus)+" at the table.");
   }
-  render();
+  render();sv();
 }
 
 // ── Daily ──────────────────────────────────────────────────────
@@ -534,9 +557,9 @@ const PRESTIGE_UPS=[
 ];
 
 function chipsEarned(){
-  // Chips earned = based on total cash this run. High threshold so prestige feels earned.
-  if(S.totalCash<1000000)return 0;// Need £1M before first prestige
-  return Math.floor(Math.pow(S.totalCash/1000000,.45));
+  // Chips earned = based on total cash this run.
+  if(S.totalCash<10000)return 0;// Need £10k before first prestige
+  return Math.max(1,Math.floor(Math.pow(S.totalCash/10000,.55)));
 }
 
 function canPrestige(){return chipsEarned()>=1}
@@ -915,7 +938,7 @@ function render(){
     sl="";
     if(!S.hints.prestige){sl+=`<div class="hint">Cash Out resets your empire but earns permanent Chips. Spend Chips on upgrades that carry over forever. Each run gets faster.</div>`;S.hints.prestige=true;sv()}
     const ce=chipsEarned();
-    sl+=`<div class="store-item" style="border-bottom:2px solid #4a2"><span class="s-icon">🎰</span><div class="s-info"><div class="s-name" style="color:#fbbf24">Chips: ${S.chips||0}</div><div class="s-desc">Cash out now for +${ce} chips (need ${$(10000)} total earned)</div></div></div>`;
+    sl+=`<div class="store-item" style="border-bottom:2px solid #4a2"><span class="s-icon">🎰</span><div class="s-info"><div class="s-name" style="color:#fbbf24">Chips: ${S.chips||0}</div><div class="s-desc">Cash out now for +${ce} chips (need £10,000 total earned)</div></div></div>`;
     if(canPrestige()){
       sl+=`<div class="store-item" onclick="doPrestige()" style="background:#1a1a0a;border:1px solid #4a2;cursor:pointer"><span class="s-icon">💰</span><div class="s-info"><div class="s-name" style="color:#4ade80">Cash Out Now</div><div class="s-desc">Reset everything. Earn ${ce} chips. Keep prestige upgrades + daily streak.</div></div></div>`;
     }
@@ -953,7 +976,7 @@ function loop(){
   // Fast cash update
   document.getElementById("cashNum").textContent=$(S.cash);
   rT+=dt;if(rT>500){rT=0;render()}
-  sT+=dt;if(sT>15000){sT=0;sv()}
+  sT+=dt;if(sT>10000){sT=0;sv()}
   // Random ticker tips
   if(Math.random()<.003)document.getElementById("ticker").textContent=TIPS[Math.floor(Math.random()*TIPS.length)];
   requestAnimationFrame(loop);
@@ -982,4 +1005,4 @@ function loop(){
 </body>
 </html>
 <!-- deployed -->
-<!-- v3 -->
+<!-- v4 -->
