@@ -356,7 +356,7 @@ body{font-family:Verdana,Geneva,sans-serif;background:#1a0a2e;color:#ddd;overflo
 // ═══════════════════════════════════════════════════════════════
 
 // Sound
-let _a;function ac(){if(!_a)_a=new(window.AudioContext||window.webkitAudioContext)();return _a}
+let _a;function ac(){if(!_a)_a=new(window.AudioContext||window.webkitAudioContext)();if(_a.state==="suspended")_a.resume();return _a}
 function tn(f,d,t="sine",v=.06){try{const c=ac(),o=c.createOscillator(),g=c.createGain();o.type=t;o.frequency.value=f;g.gain.setValueAtTime(v,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+d)}catch{}}
 function sClick(){tn(800,.03,"square",.03)}
 function sWin(){tn(660,.05,"sine",.07);setTimeout(()=>tn(880,.06,"sine",.05),30)}
