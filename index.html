@@ -179,6 +179,36 @@ body{font-family:Verdana,Geneva,sans-serif;background:#1a0a2e;color:#ddd;overflo
 ::-webkit-scrollbar-thumb{background:#2a1a4a;border-radius:3px}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-2px)}75%{transform:translateX(2px)}}.shake{animation:shake .1s ease-in-out 2}
 
+/* ── Welcome Back Modal ──────────────────────────────────── */
+.wb-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);z-index:1000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);animation:wbFadeIn .4s ease}
+@keyframes wbFadeIn{from{opacity:0}to{opacity:1}}
+.wb-modal{background:linear-gradient(160deg,#1a0e2e 0%,#0d1b0e 100%);border:2px solid #4ade80;border-radius:16px;padding:28px 32px;max-width:400px;width:90%;text-align:center;box-shadow:0 0 60px rgba(74,222,128,.15),0 4px 40px rgba(0,0,0,.6);animation:wbSlideUp .4s ease}
+@keyframes wbSlideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.wb-modal h2{color:#4ade80;font-size:22px;margin-bottom:4px;text-shadow:0 0 12px rgba(74,222,128,.3)}
+.wb-modal .wb-sub{color:#8a8;font-size:11px;margin-bottom:16px}
+.wb-modal .wb-amount{font-size:32px;font-weight:700;color:#fff;margin:12px 0 4px;text-shadow:0 0 14px rgba(74,222,128,.3)}
+.wb-modal .wb-efficiency{font-size:10px;color:#686;margin-bottom:16px}
+.wb-modal .wb-stats{display:flex;justify-content:center;gap:20px;margin:12px 0 16px}
+.wb-modal .wb-stat{text-align:center}
+.wb-modal .wb-stat-val{font-size:14px;color:#4ade80;font-weight:700}
+.wb-modal .wb-stat-label{font-size:9px;color:#888;margin-top:2px}
+.wb-modal .wb-tip{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);border-radius:8px;padding:8px 12px;margin:12px 0 18px;font-size:11px;color:#ada;line-height:1.4}
+.wb-collect-btn{
+  background:linear-gradient(180deg,#2d8a4e,#1a5a30);border:2px solid #4ade80;color:#fff;
+  font-size:16px;font-weight:700;padding:12px 40px;border-radius:10px;cursor:pointer;
+  font-family:inherit;letter-spacing:1px;text-transform:uppercase;
+  transition:transform .1s,box-shadow .2s;
+  box-shadow:0 0 20px rgba(74,222,128,.2);
+}
+.wb-collect-btn:hover{transform:scale(1.04);box-shadow:0 0 30px rgba(74,222,128,.35)}
+.wb-collect-btn:active{transform:scale(.96)}
+@media(max-width:800px){
+  .wb-modal{padding:22px 20px;max-width:340px}
+  .wb-modal h2{font-size:18px}
+  .wb-modal .wb-amount{font-size:26px}
+  .wb-collect-btn{font-size:14px;padding:10px 32px}
+}
+
 /* ── Casino Systems (Entry Fee, Capacity, Satisfaction) ──── */
 .casino-systems{width:100%;margin-top:8px;padding:0 2px}
 .sys-section{background:rgba(0,0,0,.25);border:1px solid #2a1a4a;border-radius:6px;padding:8px 10px;margin-bottom:6px}
@@ -1196,23 +1226,82 @@ function loop(){
   requestAnimationFrame(loop);
 }
 
-// ── Offline ────────────────────────────────────────────────────
-(function(){
-  const el=Date.now()-S.lt;
-  if(el>30000){
-    const cps=totalCPS();
-    if(cps>0){
-      const secs=Math.min(el,8*3600000)/1000;
-      const earned=cps*secs*.5;// 50% offline efficiency
-      S.cash+=earned;S.totalCash+=earned;
-      const h=Math.floor(el/3600000),m=Math.floor((el%3600000)/60000);
-      tick("Away "+(h>0?h+"h "+m+"m":m+"m")+". Earned "+$(earned)+".");
-    }
+// ── Welcome Back (Offline Earnings) ────────────────────────
+function getSmartTip(offlineEarned){
+  const capPct=capacityPercent();
+  const sat=calcSatisfaction();
+  // Check for a building they can almost afford
+  let nextBuyable=null;
+  for(const b of BUILDINGS){
+    const c=bCost(b);
+    if(c>S.cash+offlineEarned&&c<=(S.cash+offlineEarned)*2){nextBuyable=b;break}
   }
+  // Check if player can afford an unowned building
+  let nextNew=null;
+  for(const b of BUILDINGS){
+    if(own(b.id)===0&&bCost(b)<=S.cash+offlineEarned){nextNew=b}
+  }
+  if(capPct<30&&own("dealer")>0)return"\uD83D\uDCA1 Tip: Lower your entry fee to attract more customers";
+  if(capPct>90)return"\uD83D\uDCA1 Tip: Expand your casino to handle the crowds";
+  if(sat<50)return"\uD83D\uDCA1 Tip: Buy more building types to boost satisfaction";
+  if(nextNew)return"\uD83D\uDCA1 Tip: You can afford a new "+nextNew.n+"!";
+  if(nextBuyable)return"\uD83D\uDCA1 Tip: You\u2019re close to affording a new "+nextBuyable.n+"!";
+  return"\uD83D\uDCA1 Keep growing your empire!";
+}
+
+function showWelcomeBack(elapsed,earned){
+  const h=Math.floor(elapsed/3600000);
+  const m=Math.floor((elapsed%3600000)/60000);
+  const durStr=h>0?h+" hour"+(h!==1?"s":"")+" "+m+" minute"+(m!==1?"s":""):m+" minute"+(m!==1?"s":"");
+  const capPct=Math.floor(capacityPercent());
+  const sat=calcSatisfaction();
+  const tip=getSmartTip(earned);
+  const overlay=document.createElement("div");
+  overlay.className="wb-overlay";
+  overlay.innerHTML='<div class="wb-modal">'
+    +'<h2>\uD83C\uDFB0 Welcome Back!</h2>'
+    +'<div class="wb-sub">Your casino earned while you were away</div>'
+    +'<div class="wb-amount">'+$(earned)+'</div>'
+    +'<div class="wb-efficiency">50% autopilot efficiency \u00B7 '+durStr+' away</div>'
+    +'<div class="wb-stats">'
+    +'<div class="wb-stat"><div class="wb-stat-val">'+capPct+'%</div><div class="wb-stat-label">Capacity</div></div>'
+    +'<div class="wb-stat"><div class="wb-stat-val">'+sat+'%</div><div class="wb-stat-label">Satisfaction</div></div>'
+    +'</div>'
+    +'<div class="wb-tip">'+tip+'</div>'
+    +'<button class="wb-collect-btn" id="wbCollect">Collect</button>'
+    +'</div>';
+  document.body.appendChild(overlay);
+  document.getElementById("wbCollect").onclick=function(){
+    S.cash+=earned;S.totalCash+=earned;
+    overlay.remove();
+    sWin();
+    tick("Collected "+$(earned)+" from offline earnings.");
+    render();sv();
+  };
+}
+
+(function(){
+  const el=Date.now()-(S.lt||Date.now());
+  const cps=totalCPS();
   checkDaily();
   S.lt=Date.now();
-  tick("The House is open.");
-  render();sv();
+  if(el>60000&&cps>0){
+    // Away 60s+: show Welcome Back modal (capped at 8hrs, 50% efficiency)
+    const secs=Math.min(el,8*3600000)/1000;
+    const earned=cps*secs*.5;
+    render();
+    showWelcomeBack(el,earned);
+  }else{
+    // Quick refresh or no CPS — silent
+    if(el>10000&&cps>0){
+      const secs=Math.min(el,8*3600000)/1000;
+      const earned=cps*secs*.5;
+      S.cash+=earned;S.totalCash+=earned;
+    }
+    tick("The House is open.");
+    render();
+  }
+  sv();
   requestAnimationFrame(loop);
 })();
 </script>
