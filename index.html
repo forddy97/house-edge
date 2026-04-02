@@ -133,12 +133,12 @@ body{font-family:Verdana,Geneva,sans-serif;background:#1a0a2e;color:#ddd;overflo
 
 /* ── Mobile: stack vertically ────────────────────────────────── */
 @media(max-width:800px){
-  .game{flex-direction:column;height:auto;min-height:100dvh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .game{flex-direction:column;height:auto;min-height:100dvh}
   .left{flex:0 0 auto;padding:6px 10px 4px;min-height:auto}
   .click-btn{width:80px;height:80px;margin:4px 0}
   .click-btn .icon{font-size:24px;margin-bottom:1px}
   .click-btn .label{font-size:9px;letter-spacing:1px}
-  .mid{flex:0 0 auto;border-left:none;border-right:none;border-top:2px solid #2a1a4a;border-bottom:2px solid #2a1a4a;overflow:visible;max-height:none}
+  .mid{flex:0 0 auto;max-height:180px;border-left:none;border-right:none;border-top:2px solid #2a1a4a;border-bottom:2px solid #2a1a4a;overflow-y:scroll;-webkit-overflow-scrolling:touch;touch-action:pan-y}
   .right{flex:1 0 auto;min-height:50dvh;overflow-y:scroll;-webkit-overflow-scrolling:touch;padding-bottom:150px}
   .cash-num{font-size:18px}
   .cash-label{font-size:7px}
