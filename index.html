@@ -217,7 +217,10 @@ body{font-family:Verdana,Geneva,sans-serif;background:#1a0a2e;color:#ddd;overflo
 
 /* Entry fee buttons */
 .fee-buttons{display:flex;gap:3px;flex-wrap:wrap;margin-top:4px}
-.fee-btn{
+.fee-slider{width:100%;margin:4px 0;accent-color:#4ade80;cursor:pointer}
+.fee-slider::-webkit-slider-thumb{cursor:pointer}
+.fee-amount{text-align:center;font-size:16px;font-weight:700;color:#4ade80;margin:2px 0}
+.fee-btn{display:none;
   flex:1;min-width:36px;padding:4px 2px;border:1px solid #2a1a4a;border-radius:4px;
   background:#1a0e2e;color:#aaa;font-size:9px;cursor:pointer;text-align:center;
   transition:all .15s;font-family:inherit;
@@ -292,8 +295,9 @@ body{font-family:Verdana,Geneva,sans-serif;background:#1a0a2e;color:#ddd;overflo
     <!-- Casino Systems — Interconnected Equilibrium -->
     <div class="casino-systems" id="casinoSystems" style="display:none">
       <div class="sys-section" id="feeSection">
-        <div class="sys-label"><span>Entry Fee</span><span class="sys-val" id="feeVal">£5</span></div>
-        <div class="fee-buttons" id="feeButtons"></div>
+        <div class="sys-label"><span>Entry Fee</span><span class="sys-val" id="feeVal">£10</span></div>
+        <input type="range" class="fee-slider" id="feeSlider" min="1" max="100" value="1" oninput="setEntryFee(this.value*10)">
+        <div style="display:flex;justify-content:space-between;font-size:8px;color:#666;margin-top:-2px"><span>£10</span><span>£1,000</span></div>
         <div class="fee-desc" id="feeDesc">Low fee — steady flow of customers</div>
       </div>
       <div class="sys-section" id="capSection">
@@ -489,7 +493,7 @@ const DEF={
   lt:Date.now(),
   tab:"buildings",
   // Casino systems (interconnected equilibrium)
-  entryFee:5,
+  entryFee:10,
   capacity:0,maxCapacity:50,
   satisfaction:50,// Now dynamic — tracks smoothly toward target
   expansions:0
@@ -514,7 +518,7 @@ let S;try{
     S.pClickMult=S.pClickMult||1;S.whaleFreq=S.whaleFreq||1;
     S.startCash=S.startCash||0;S.startDealers=S.startDealers||0;S.startTables=S.startTables||0;
     // Casino systems backwards compat
-    if(S.entryFee===undefined)S.entryFee=5;
+    if(S.entryFee===undefined||S.entryFee<10)S.entryFee=10;
     if(S.capacity===undefined)S.capacity=0;
     if(S.maxCapacity===undefined)S.maxCapacity=50;
     if(S.satisfaction===undefined)S.satisfaction=50;
@@ -540,52 +544,30 @@ function bMult(id){return S.buildingMult[id]||1}
 // ══════════════════════════════════════════════════════════════
 
 // ── Entry Fee System ──────────────────────────────────────────
-const FEE_TIERS=[
-  {fee:1,  label:"£1",  incMult:.25, custMult:2.2, desc:"Bargain — floods of customers, tiny margins"},
-  {fee:5,  label:"£5",  incMult:.6,  custMult:1.6, desc:"Low fee — steady flow, modest income"},
-  {fee:10, label:"£10", incMult:1.0, custMult:1.0, desc:"Standard — balanced risk and reward"},
-  {fee:25, label:"£25", incMult:1.8, custMult:.6,  desc:"Premium — fewer punters, bigger spenders"},
-  {fee:50, label:"£50", incMult:3.0, custMult:.35, desc:"High roller — only serious gamblers"},
-  {fee:100,label:"£100",incMult:5.0, custMult:.18, desc:"VIP — the elite only"},
-  {fee:250,label:"£250",incMult:9.0, custMult:.08, desc:"Exclusive — whales and billionaires"},
-  {fee:500,label:"£500",incMult:15,  custMult:.04, desc:"Ultra — practically empty, huge payouts"},
-  {fee:1000,label:"£1K",incMult:25,  custMult:.02, desc:"Insane — one customer could make your year"},
-];
-
-function currentFeeTier(){return FEE_TIERS.find(t=>t.fee===S.entryFee)||FEE_TIERS[2]}
+// Continuous entry fee: £10 to £1000 in £10 increments
+// Income multiplier scales up with fee (logarithmic curve)
+// Customer multiplier scales down with fee (inverse curve)
 function feeIncomeMult(){
-  const tier=currentFeeTier();
-  // High satisfaction lets customers tolerate higher fees
-  // At 80+ satisfaction, fee income gets a bonus (customers feel it's worth it)
+  const fee=S.entryFee||10;
+  // £10=1x, £100=5x, £500=15x, £1000=25x (log curve)
+  const base=Math.pow(fee/10, 0.7);
   const sat=S.satisfaction||50;
   const satBonus=sat>60?1+((sat-60)/100)*.5:sat<40?Math.max(.6,sat/40):1;
-  return tier.incMult*satBonus;
+  return base*satBonus;
 }
 function feeCustMult(){
-  const tier=currentFeeTier();
-  // Satisfaction affects willingness to arrive — high sat = more arrive even at high fees
+  const fee=S.entryFee||10;
+  // £10=1.0, £100=0.18, £500=0.04, £1000=0.02 (inverse curve)
+  const base=Math.pow(10/fee, 0.75);
   const sat=S.satisfaction||50;
   const satFactor=sat>60?1+((sat-60)/100)*.6:sat<40?Math.max(.4,sat/40):1;
-  return tier.custMult*satFactor;
-}
-
-// Fee tiers unlock with progression (total buildings owned)
-function unlockedFeeTiers(){
-  let total=0;for(const b of BUILDINGS)total+=own(b.id);
-  if(total>=200)return FEE_TIERS;
-  if(total>=100)return FEE_TIERS.slice(0,8);
-  if(total>=50)return FEE_TIERS.slice(0,7);
-  if(total>=25)return FEE_TIERS.slice(0,6);
-  if(total>=10)return FEE_TIERS.slice(0,5);
-  if(total>=5)return FEE_TIERS.slice(0,4);
-  if(total>=1)return FEE_TIERS.slice(0,3);
-  return FEE_TIERS.slice(0,2);
+  return base*satFactor;
 }
 
 function setEntryFee(fee){
+  fee=Math.round(Math.max(10,Math.min(1000,Number(fee)))/10)*10;
   S.entryFee=fee;
-  const tier=currentFeeTier();
-  tick("Entry fee set to "+tier.label+". "+tier.desc);
+  tick("Entry fee set to £"+fee.toLocaleString());
   sBuy();sv();render();
 }
 
@@ -909,7 +891,7 @@ function doPrestige(){
   if(S.startDealers)S.owned.dealer=S.startDealers;
   if(S.startTables)S.owned.table=S.startTables;
   // Reset casino systems to defaults on prestige (satisfaction starts at 50, will dynamically adjust)
-  S.entryFee=5;S.capacity=0;S.maxCapacity=50;S.satisfaction=50;S.expansions=0;
+  S.entryFee=10;S.capacity=0;S.maxCapacity=50;S.satisfaction=50;S.expansions=0;
 
   tick("CASHED OUT. Earned "+earned+" chips. Total: "+S.chips+".");
   sv();render();
@@ -1018,19 +1000,14 @@ function render(){
   const sysEl=document.getElementById("casinoSystems");
   if(totalBuildings>=1){
     sysEl.style.display="block";
-    // Entry fee buttons
-    const tiers=unlockedFeeTiers();
-    const feeBtns=document.getElementById("feeButtons");
-    let fb="";
-    for(const t of tiers){
-      fb+=`<button class="fee-btn${S.entryFee===t.fee?" active":""}" onclick="setEntryFee(${t.fee})">${t.label}</button>`;
-    }
-    feeBtns.innerHTML=fb;
-    const tier=currentFeeTier();
-    document.getElementById("feeVal").textContent=tier.label;
+    // Entry fee slider
+    const slider=document.getElementById("feeSlider");
+    const fee=S.entryFee||10;
+    slider.value=fee/10;
+    document.getElementById("feeVal").textContent="£"+fee.toLocaleString();
     const effInc=feeIncomeMult().toFixed(1);
     const effCust=feeCustMult().toFixed(2);
-    document.getElementById("feeDesc").textContent=tier.desc+" (income x"+effInc+", flow x"+effCust+")";
+    document.getElementById("feeDesc").textContent="Income x"+effInc+" | Customer flow x"+effCust;
 
     // Capacity bar with color coding
     const capPct=capacityPercent();
