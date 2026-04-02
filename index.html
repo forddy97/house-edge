@@ -178,6 +178,47 @@ body{font-family:Verdana,Geneva,sans-serif;background:#1a0a2e;color:#ddd;overflo
 ::-webkit-scrollbar-track{background:#0a0a12}
 ::-webkit-scrollbar-thumb{background:#2a1a4a;border-radius:3px}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-2px)}75%{transform:translateX(2px)}}.shake{animation:shake .1s ease-in-out 2}
+
+/* ── Casino Systems (Entry Fee, Capacity, Satisfaction) ──── */
+.casino-systems{width:100%;margin-top:8px;padding:0 2px}
+.sys-section{background:rgba(0,0,0,.25);border:1px solid #2a1a4a;border-radius:6px;padding:8px 10px;margin-bottom:6px}
+.sys-label{font-size:9px;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center}
+.sys-val{color:#4ade80;font-weight:700;font-size:11px;text-transform:none;letter-spacing:0}
+
+/* Entry fee buttons */
+.fee-buttons{display:flex;gap:3px;flex-wrap:wrap;margin-top:4px}
+.fee-btn{
+  flex:1;min-width:36px;padding:4px 2px;border:1px solid #2a1a4a;border-radius:4px;
+  background:#1a0e2e;color:#aaa;font-size:9px;cursor:pointer;text-align:center;
+  transition:all .15s;font-family:inherit;
+}
+.fee-btn:hover{border-color:#4ade80;color:#4ade80}
+.fee-btn.active{background:#1a3a1a;border-color:#4ade80;color:#4ade80;font-weight:700}
+.fee-desc{font-size:8px;color:#686;margin-top:3px;line-height:1.3}
+
+/* Capacity bar */
+.cap-bar-wrap{background:#0a0a12;border-radius:3px;height:14px;overflow:hidden;position:relative;margin-top:4px;border:1px solid #1a1a2a}
+.cap-bar-fill{height:100%;border-radius:2px;transition:width .5s ease,background .3s;min-width:0}
+.cap-bar-text{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;font-size:8px;color:#ddd;font-weight:600;text-shadow:0 0 3px #000}
+.cap-bar-fill.low{background:linear-gradient(90deg,#1a4a2a,#2a6a3a)}
+.cap-bar-fill.mid{background:linear-gradient(90deg,#2a6a3a,#4ade80)}
+.cap-bar-fill.high{background:linear-gradient(90deg,#4ade80,#fbbf24)}
+.cap-bar-fill.full{background:linear-gradient(90deg,#fbbf24,#ef4444)}
+
+/* Satisfaction bar */
+.sat-bar-wrap{background:#0a0a12;border-radius:3px;height:10px;overflow:hidden;position:relative;margin-top:4px;border:1px solid #1a1a2a}
+.sat-bar-fill{height:100%;border-radius:2px;transition:width .5s ease;background:linear-gradient(90deg,#ef4444,#fbbf24,#4ade80)}
+.sat-bar-text{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;font-size:7px;color:#ddd;font-weight:600;text-shadow:0 0 3px #000}
+
+/* Mobile adjustments for casino systems */
+@media(max-width:800px){
+  .casino-systems{margin-top:4px}
+  .sys-section{padding:5px 7px;margin-bottom:4px}
+  .sys-label{font-size:8px}
+  .sys-val{font-size:10px}
+  .fee-btn{font-size:8px;padding:3px 1px}
+  .fee-desc{font-size:7px}
+}
 </style>
 </head>
 <body>
@@ -193,6 +234,23 @@ body{font-family:Verdana,Geneva,sans-serif;background:#1a0a2e;color:#ddd;overflo
     <div class="click-btn" id="clickBtn" onclick="deal(event)">
       <div class="icon">🂡</div>
       <div class="label">Deal</div>
+    </div>
+
+    <!-- Casino Systems -->
+    <div class="casino-systems" id="casinoSystems" style="display:none">
+      <div class="sys-section" id="feeSection">
+        <div class="sys-label"><span>Table Minimum</span><span class="sys-val" id="feeVal">£5</span></div>
+        <div class="fee-buttons" id="feeButtons"></div>
+        <div class="fee-desc" id="feeDesc">Low fee — steady flow of customers</div>
+      </div>
+      <div class="sys-section" id="capSection">
+        <div class="sys-label"><span>Capacity</span><span class="sys-val" id="capVal">0 / 50</span></div>
+        <div class="cap-bar-wrap"><div class="cap-bar-fill low" id="capBar" style="width:0%"></div><div class="cap-bar-text" id="capText">0%</div></div>
+      </div>
+      <div class="sys-section" id="satSection">
+        <div class="sys-label"><span>Satisfaction</span><span class="sys-val" id="satVal">50%</span></div>
+        <div class="sat-bar-wrap"><div class="sat-bar-fill" id="satBar" style="width:50%"></div><div class="sat-bar-text" id="satText">50%</div></div>
+      </div>
     </div>
 
     <div class="left-info" id="leftInfo"></div>
@@ -365,7 +423,12 @@ const DEF={
   prestiges:0,pMult:1,chips:0,pUps:[],pClickMult:1,whaleFreq:1,startCash:0,startDealers:0,startTables:0,globalMult:1,
   seenUpgrades:[],hints:{},
   lt:Date.now(),
-  tab:"buildings"
+  tab:"buildings",
+  // Casino systems
+  entryFee:5,
+  capacity:0,maxCapacity:50,
+  satisfaction:50,
+  expansions:0
 };
 const SAVE_VERSION=4;
 let S;try{
@@ -386,6 +449,12 @@ let S;try{
     S.pMult=S.pMult||1;S.globalMult=S.globalMult||1;S.clickMult=S.clickMult||1;
     S.pClickMult=S.pClickMult||1;S.whaleFreq=S.whaleFreq||1;
     S.startCash=S.startCash||0;S.startDealers=S.startDealers||0;S.startTables=S.startTables||0;
+    // Casino systems backwards compat
+    if(S.entryFee===undefined)S.entryFee=5;
+    if(S.capacity===undefined)S.capacity=0;
+    if(S.maxCapacity===undefined)S.maxCapacity=50;
+    if(S.satisfaction===undefined)S.satisfaction=50;
+    if(S.expansions===undefined)S.expansions=0;
   }else{S={...DEF}}
 }catch{S={...DEF}}
 S.saveVersion=SAVE_VERSION;
@@ -400,17 +469,97 @@ function $(n){if(n<0)return"-"+$(-n);if(n>=1e12)return"£"+(n/1e12).toFixed(2)+"
 function own(id){return S.owned[id]||0}
 function bMult(id){return S.buildingMult[id]||1}
 
+// ── Entry Fee System ──────────────────────────────────────────
+const FEE_TIERS=[
+  {fee:1,  label:"£1",  incMult:.3,  custMult:2.0, desc:"Bargain basement — everyone piles in"},
+  {fee:5,  label:"£5",  incMult:.7,  custMult:1.5, desc:"Low fee — steady flow of customers"},
+  {fee:10, label:"£10", incMult:1.0, custMult:1.0, desc:"Standard — balanced risk and reward"},
+  {fee:25, label:"£25", incMult:1.6, custMult:.7,  desc:"Premium — fewer punters, bigger spenders"},
+  {fee:50, label:"£50", incMult:2.5, custMult:.45, desc:"High roller — only serious gamblers"},
+  {fee:100,label:"£100",incMult:4.0, custMult:.25, desc:"VIP — the elite only"},
+  {fee:250,label:"£250",incMult:7.0, custMult:.12, desc:"Exclusive — whales and billionaires"},
+  {fee:500,label:"£500",incMult:12,  custMult:.06, desc:"Ultra — practically empty, but huge payouts"},
+  {fee:1000,label:"£1K",incMult:20,  custMult:.03, desc:"Insane — one customer could make your year"},
+];
+
+function currentFeeTier(){return FEE_TIERS.find(t=>t.fee===S.entryFee)||FEE_TIERS[2]}
+function feeIncomeMult(){return currentFeeTier().incMult}
+function feeCustMult(){return currentFeeTier().custMult}
+
+// Fee tiers unlock with progression (total buildings owned)
+function unlockedFeeTiers(){
+  let total=0;for(const b of BUILDINGS)total+=own(b.id);
+  if(total>=200)return FEE_TIERS;
+  if(total>=100)return FEE_TIERS.slice(0,8);
+  if(total>=50)return FEE_TIERS.slice(0,7);
+  if(total>=25)return FEE_TIERS.slice(0,6);
+  if(total>=10)return FEE_TIERS.slice(0,5);
+  if(total>=5)return FEE_TIERS.slice(0,4);
+  if(total>=1)return FEE_TIERS.slice(0,3);
+  return FEE_TIERS.slice(0,2);
+}
+
+function setEntryFee(fee){
+  S.entryFee=fee;
+  const tier=currentFeeTier();
+  tick("Table minimum set to "+tier.label+". "+tier.desc);
+  sBuy();sv();render();
+}
+
+// ── Capacity System ───────────────────────────────────────────
+function capacityPercent(){return S.maxCapacity>0?Math.min(100,S.capacity/S.maxCapacity*100):0}
+function capacityIncomeMult(){return S.maxCapacity>0?Math.min(S.capacity,S.maxCapacity)/S.maxCapacity:0}
+
+// ── Customer Satisfaction ─────────────────────────────────────
+function calcSatisfaction(){
+  let sat=50;// Base
+  // Building variety bonus: +5 per unique building type owned
+  let types=0;for(const b of BUILDINGS)if(own(b.id)>0)types++;
+  sat+=types*5;
+  // Upgrades bonus: +1 per upgrade owned, capped at +20
+  sat+=Math.min(20,S.upgrades.length);
+  // Expansions bonus: +2 per expansion
+  sat+=(S.expansions||0)*2;
+  // Overcrowding penalty: above 85% capacity, satisfaction drops
+  const capPct=capacityPercent();
+  if(capPct>85)sat-=Math.floor((capPct-85)*1.5);
+  if(capPct>95)sat-=Math.floor((capPct-95)*3);
+  // Clamp
+  return Math.max(5,Math.min(100,Math.round(sat)));
+}
+
+// Satisfaction affects how fast capacity fills (multiplier)
+function satisfactionMult(){return calcSatisfaction()/50}// 100% sat = 2x fill rate, 50% = 1x, 25% = 0.5x
+
+// ── Expansion Upgrades (in store) ─────────────────────────────
+function expansionCost(){return Math.floor(500*Math.pow(3.5,S.expansions||0))}
+function buyExpansion(){
+  const c=expansionCost();
+  if(S.cash<c)return;
+  S.cash-=c;
+  S.expansions=(S.expansions||0)+1;
+  S.maxCapacity+=50;
+  sBuy();tick("Casino expanded! Max capacity now "+S.maxCapacity+".");
+  sv();render();
+}
+
 // ── Costs (Cookie Clicker formula: base * 1.15^owned) ──────────
 function bCost(b){return Math.floor(b.baseCost*Math.pow(1.15,own(b.id)))}
 
 // ── Production ─────────────────────────────────────────────────
 function bProd(b){return b.baseProd*bMult(b.id)*S.pMult*(S.globalMult||1)}
-function totalCPS(){
+function baseCPS(){
   let t=0;
   for(const b of BUILDINGS){const n=own(b.id);if(n>0)t+=bProd(b)*n}
   return t;
 }
-function clickValue(){return(1.5+totalCPS()*.05)*S.clickMult*S.pMult*(S.pClickMult||1)}
+function totalCPS(){
+  // Base income * entry fee multiplier * capacity multiplier
+  const base=baseCPS();
+  const capMult=Math.max(.05,capacityIncomeMult());// At least 5% so you're not stuck at zero
+  return base*feeIncomeMult()*capMult;
+}
+function clickValue(){return(1.5+baseCPS()*.05)*S.clickMult*S.pMult*(S.pClickMult||1)*feeIncomeMult()}
 
 // ── Deal (click) ───────────────────────────────────────────────
 function deal(ev){
@@ -472,6 +621,26 @@ function autoTick(dt){
       const earned=cps*(.95+Math.random()*.1);
       S.cash+=earned;S.totalCash+=earned;
     }
+
+    // ── Capacity tick ──
+    // Customers arrive based on: building count (reputation) * fee customer mult * satisfaction
+    let totalBuildings=0;for(const b of BUILDINGS)totalBuildings+=own(b.id);
+    if(totalBuildings>0){
+      // Base arrival rate: scales with buildings owned
+      const baseArrival=Math.sqrt(totalBuildings)*1.2;
+      const arrival=baseArrival*feeCustMult()*satisfactionMult();
+      // Drain: customers leave at ~8% per tick (so capacity naturally decays)
+      const drain=S.capacity*.08;
+      // Net change
+      S.capacity=Math.max(0,Math.min(S.maxCapacity,S.capacity+arrival-drain));
+    }else{
+      // No buildings = capacity drains to 0
+      S.capacity=Math.max(0,S.capacity-.5);
+    }
+
+    // Update satisfaction
+    S.satisfaction=calcSatisfaction();
+
     // Whale spawn — more frequent early game, settles to ~every 90s
     const whaleChance=(S.whalesCaught<3?.025:.012)*(S.whaleFreq||1);
     if(!whaleEl&&Math.random()<whaleChance)spawnWhale();
@@ -592,6 +761,8 @@ function doPrestige(){
   S.cash=S.startCash||0;S.totalCash=S.cash;
   if(S.startDealers)S.owned.dealer=S.startDealers;
   if(S.startTables)S.owned.table=S.startTables;
+  // Reset casino systems to defaults on prestige
+  S.entryFee=5;S.capacity=0;S.maxCapacity=50;S.satisfaction=50;S.expansions=0;
 
   tick("CASHED OUT. Earned "+earned+" chips. Total: "+S.chips+".");
   sv();render();
@@ -695,10 +866,45 @@ function render(){
   document.getElementById("cashNum").textContent=$(S.cash);
   document.getElementById("cps").textContent=cps>0?"earning "+$(cps)+" per second":"";
 
+  // ── Casino Systems UI ──
+  let totalBuildings=0;for(const b of BUILDINGS)totalBuildings+=own(b.id);
+  const sysEl=document.getElementById("casinoSystems");
+  if(totalBuildings>=1){
+    sysEl.style.display="block";
+    // Entry fee buttons
+    const tiers=unlockedFeeTiers();
+    const feeBtns=document.getElementById("feeButtons");
+    let fb="";
+    for(const t of tiers){
+      fb+=`<button class="fee-btn${S.entryFee===t.fee?" active":""}" onclick="setEntryFee(${t.fee})">${t.label}</button>`;
+    }
+    feeBtns.innerHTML=fb;
+    const tier=currentFeeTier();
+    document.getElementById("feeVal").textContent=tier.label;
+    document.getElementById("feeDesc").textContent=tier.desc+" (income x"+tier.incMult.toFixed(1)+", customers x"+tier.custMult.toFixed(2)+")";
+
+    // Capacity bar
+    const capPct=capacityPercent();
+    const capBar=document.getElementById("capBar");
+    capBar.style.width=capPct.toFixed(1)+"%";
+    capBar.className="cap-bar-fill "+(capPct>=95?"full":capPct>=70?"high":capPct>=40?"mid":"low");
+    document.getElementById("capVal").textContent=Math.floor(S.capacity)+" / "+S.maxCapacity;
+    document.getElementById("capText").textContent=Math.floor(capPct)+"%"+(capPct>=100?" FULL":"");
+
+    // Satisfaction
+    const sat=calcSatisfaction();
+    document.getElementById("satVal").textContent=sat+"%";
+    document.getElementById("satBar").style.width=sat+"%";
+    document.getElementById("satText").textContent=sat+"%"+(sat>=80?" Happy":sat>=60?" Content":sat>=40?" Meh":" Unhappy");
+  }else{
+    sysEl.style.display="none";
+  }
+
   // Left info
   let li="";
   li+=`<div class="info-row"><span>Hands dealt</span><span class="val">${S.hands}</span></div>`;
   li+=`<div class="info-row"><span>Per hand</span><span class="val">${$(clickValue())}</span></div>`;
+  if(totalBuildings>=1)li+=`<div class="info-row"><span>Customers</span><span class="val">${Math.floor(S.capacity)}/${S.maxCapacity}</span></div>`;
   if(S.whalesCaught>0)li+=`<div class="info-row"><span>Whales caught</span><span class="val">${S.whalesCaught}</span></div>`;
   if(S.prestiges>0)li+=`<div class="info-row"><span>Prestige</span><span class="val">${S.pMult.toFixed(2)}x</span></div>`;
   if((S.chips||0)>0)li+=`<div class="info-row"><span>Chips</span><span class="val" style="color:#fbbf24">${S.chips}</span></div>`;
@@ -893,6 +1099,14 @@ function render(){
   if(storeTab==="buildings"){
     // First building hint
     if(own("dealer")===0&&S.cash>=15&&!S.hints.buildings){sl+=`<div class="hint">Buildings earn cash automatically. Buy your first Dealer to start.</div>`;S.hints.buildings=true;sv()}
+
+    // Expand Casino (capacity upgrade) — show once player has any buildings
+    if(totalBuildings>=1){
+      const ec=expansionCost();
+      const eLocked=S.cash<ec;
+      sl+=`<div class="store-item${eLocked?" locked":""}" onclick="buyExpansion()" style="border-bottom:2px solid #2a4a2a"><span class="s-icon">🏗️</span><div class="s-info"><div class="s-name" style="color:#fbbf24">Expand Casino</div><div class="s-desc">+50 max capacity (currently ${S.maxCapacity})</div></div><div class="s-cost">${$(ec)}</div><div class="s-owned">${S.expansions||""}</div></div>`;
+    }
+
     let shownLocked=0;
     for(const b of BUILDINGS){
       if(b.mw&&S.wins<b.mw)continue;
