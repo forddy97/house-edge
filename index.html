@@ -227,18 +227,39 @@ body{font-family:Verdana,Geneva,sans-serif;background:#1a0a2e;color:#ddd;overflo
 .fee-desc{font-size:8px;color:#686;margin-top:3px;line-height:1.3}
 
 /* Capacity bar */
-.cap-bar-wrap{background:#0a0a12;border-radius:3px;height:14px;overflow:hidden;position:relative;margin-top:4px;border:1px solid #1a1a2a}
+.cap-bar-wrap{background:#0a0a12;border-radius:3px;height:16px;overflow:hidden;position:relative;margin-top:4px;border:1px solid #1a1a2a}
 .cap-bar-fill{height:100%;border-radius:2px;transition:width .5s ease,background .3s;min-width:0}
 .cap-bar-text{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;font-size:8px;color:#ddd;font-weight:600;text-shadow:0 0 3px #000}
+.cap-bar-fill.dead{background:linear-gradient(90deg,#333,#555)}
 .cap-bar-fill.low{background:linear-gradient(90deg,#1a4a2a,#2a6a3a)}
-.cap-bar-fill.mid{background:linear-gradient(90deg,#2a6a3a,#4ade80)}
-.cap-bar-fill.high{background:linear-gradient(90deg,#4ade80,#fbbf24)}
-.cap-bar-fill.full{background:linear-gradient(90deg,#fbbf24,#ef4444)}
+.cap-bar-fill.sweet{background:linear-gradient(90deg,#2a8a4a,#4ade80);box-shadow:0 0 8px rgba(74,222,128,.3)}
+.cap-bar-fill.high{background:linear-gradient(90deg,#daa520,#fbbf24)}
+.cap-bar-fill.full{background:linear-gradient(90deg,#ef4444,#cc2222)}
+/* Sweet spot markers on capacity bar */
+.cap-sweet-zone{position:absolute;top:0;bottom:0;border-left:1px dashed rgba(74,222,128,.4);border-right:1px dashed rgba(74,222,128,.4);background:rgba(74,222,128,.06);pointer-events:none}
+.cap-sweet-label{position:absolute;top:-10px;font-size:6px;color:#4ade80;opacity:.7;pointer-events:none;white-space:nowrap}
 
-/* Satisfaction bar */
-.sat-bar-wrap{background:#0a0a12;border-radius:3px;height:10px;overflow:hidden;position:relative;margin-top:4px;border:1px solid #1a1a2a}
-.sat-bar-fill{height:100%;border-radius:2px;transition:width .5s ease;background:linear-gradient(90deg,#ef4444,#fbbf24,#4ade80)}
+/* Satisfaction display */
+.sat-display{display:flex;align-items:center;gap:6px;margin-top:4px}
+.sat-emoji{font-size:18px;transition:all .3s}
+.sat-info{flex:1}
+.sat-bar-wrap{background:#0a0a12;border-radius:3px;height:10px;overflow:hidden;position:relative;border:1px solid #1a1a2a}
+.sat-bar-fill{height:100%;border-radius:2px;transition:width .5s ease,background .3s}
+.sat-bar-fill.sat-great{background:linear-gradient(90deg,#2a8a4a,#4ade80)}
+.sat-bar-fill.sat-good{background:linear-gradient(90deg,#4ade80,#8aee80)}
+.sat-bar-fill.sat-ok{background:linear-gradient(90deg,#daa520,#fbbf24)}
+.sat-bar-fill.sat-bad{background:linear-gradient(90deg,#ef4444,#ff6644)}
 .sat-bar-text{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;font-size:7px;color:#ddd;font-weight:600;text-shadow:0 0 3px #000}
+.sat-status{font-size:8px;color:#888;margin-top:2px}
+.sat-status.good{color:#4ade80}
+.sat-status.warn{color:#fbbf24}
+.sat-status.bad{color:#ef4444}
+
+/* Equilibrium summary line */
+.equil-summary{font-size:8px;color:#686;margin-top:4px;padding:3px 6px;background:rgba(74,222,128,.05);border:1px solid rgba(74,222,128,.1);border-radius:3px;text-align:center;line-height:1.4}
+.equil-summary.good{border-color:rgba(74,222,128,.25);color:#8a8}
+.equil-summary.warn{border-color:rgba(251,191,36,.25);color:#aa8}
+.equil-summary.bad{border-color:rgba(239,68,68,.25);color:#a88}
 
 /* Mobile adjustments for casino systems */
 @media(max-width:800px){
@@ -248,6 +269,8 @@ body{font-family:Verdana,Geneva,sans-serif;background:#1a0a2e;color:#ddd;overflo
   .sys-val{font-size:10px}
   .fee-btn{font-size:8px;padding:3px 1px}
   .fee-desc{font-size:7px}
+  .sat-emoji{font-size:14px}
+  .equil-summary{font-size:7px}
 }
 </style>
 </head>
@@ -266,21 +289,32 @@ body{font-family:Verdana,Geneva,sans-serif;background:#1a0a2e;color:#ddd;overflo
       <div class="label">Deal</div>
     </div>
 
-    <!-- Casino Systems -->
+    <!-- Casino Systems — Interconnected Equilibrium -->
     <div class="casino-systems" id="casinoSystems" style="display:none">
       <div class="sys-section" id="feeSection">
-        <div class="sys-label"><span>Table Minimum</span><span class="sys-val" id="feeVal">£5</span></div>
+        <div class="sys-label"><span>Entry Fee</span><span class="sys-val" id="feeVal">£5</span></div>
         <div class="fee-buttons" id="feeButtons"></div>
         <div class="fee-desc" id="feeDesc">Low fee — steady flow of customers</div>
       </div>
       <div class="sys-section" id="capSection">
         <div class="sys-label"><span>Capacity</span><span class="sys-val" id="capVal">0 / 50</span></div>
-        <div class="cap-bar-wrap"><div class="cap-bar-fill low" id="capBar" style="width:0%"></div><div class="cap-bar-text" id="capText">0%</div></div>
+        <div class="cap-bar-wrap" style="position:relative">
+          <div class="cap-sweet-zone" id="capSweetZone" style="left:60%;width:20%"></div>
+          <div class="cap-bar-fill low" id="capBar" style="width:0%"></div>
+          <div class="cap-bar-text" id="capText">0%</div>
+        </div>
       </div>
       <div class="sys-section" id="satSection">
         <div class="sys-label"><span>Satisfaction</span><span class="sys-val" id="satVal">50%</span></div>
-        <div class="sat-bar-wrap"><div class="sat-bar-fill" id="satBar" style="width:50%"></div><div class="sat-bar-text" id="satText">50%</div></div>
+        <div class="sat-display">
+          <div class="sat-emoji" id="satEmoji">😐</div>
+          <div class="sat-info">
+            <div class="sat-bar-wrap"><div class="sat-bar-fill sat-ok" id="satBar" style="width:50%"></div><div class="sat-bar-text" id="satText">50%</div></div>
+            <div class="sat-status" id="satStatus">Customers are indifferent</div>
+          </div>
+        </div>
       </div>
+      <div class="equil-summary" id="equilSummary">Balance entry fee, capacity, and satisfaction for maximum income</div>
     </div>
 
     <div class="left-info" id="leftInfo"></div>
@@ -454,10 +488,10 @@ const DEF={
   seenUpgrades:[],hints:{},
   lt:Date.now(),
   tab:"buildings",
-  // Casino systems
+  // Casino systems (interconnected equilibrium)
   entryFee:5,
   capacity:0,maxCapacity:50,
-  satisfaction:50,
+  satisfaction:50,// Now dynamic — tracks smoothly toward target
   expansions:0
 };
 const SAVE_VERSION=4;
@@ -499,22 +533,41 @@ function $(n){if(n<0)return"-"+$(-n);if(n>=1e12)return"£"+(n/1e12).toFixed(2)+"
 function own(id){return S.owned[id]||0}
 function bMult(id){return S.buildingMult[id]||1}
 
+// ══════════════════════════════════════════════════════════════
+// INTERCONNECTED EQUILIBRIUM: Entry Fee / Capacity / Satisfaction
+// The player controls ONLY the entry fee. Capacity and satisfaction
+// are driven by the equilibrium between all three systems.
+// ══════════════════════════════════════════════════════════════
+
 // ── Entry Fee System ──────────────────────────────────────────
 const FEE_TIERS=[
-  {fee:1,  label:"£1",  incMult:.3,  custMult:2.0, desc:"Bargain basement — everyone piles in"},
-  {fee:5,  label:"£5",  incMult:.7,  custMult:1.5, desc:"Low fee — steady flow of customers"},
+  {fee:1,  label:"£1",  incMult:.25, custMult:2.2, desc:"Bargain — floods of customers, tiny margins"},
+  {fee:5,  label:"£5",  incMult:.6,  custMult:1.6, desc:"Low fee — steady flow, modest income"},
   {fee:10, label:"£10", incMult:1.0, custMult:1.0, desc:"Standard — balanced risk and reward"},
-  {fee:25, label:"£25", incMult:1.6, custMult:.7,  desc:"Premium — fewer punters, bigger spenders"},
-  {fee:50, label:"£50", incMult:2.5, custMult:.45, desc:"High roller — only serious gamblers"},
-  {fee:100,label:"£100",incMult:4.0, custMult:.25, desc:"VIP — the elite only"},
-  {fee:250,label:"£250",incMult:7.0, custMult:.12, desc:"Exclusive — whales and billionaires"},
-  {fee:500,label:"£500",incMult:12,  custMult:.06, desc:"Ultra — practically empty, but huge payouts"},
-  {fee:1000,label:"£1K",incMult:20,  custMult:.03, desc:"Insane — one customer could make your year"},
+  {fee:25, label:"£25", incMult:1.8, custMult:.6,  desc:"Premium — fewer punters, bigger spenders"},
+  {fee:50, label:"£50", incMult:3.0, custMult:.35, desc:"High roller — only serious gamblers"},
+  {fee:100,label:"£100",incMult:5.0, custMult:.18, desc:"VIP — the elite only"},
+  {fee:250,label:"£250",incMult:9.0, custMult:.08, desc:"Exclusive — whales and billionaires"},
+  {fee:500,label:"£500",incMult:15,  custMult:.04, desc:"Ultra — practically empty, huge payouts"},
+  {fee:1000,label:"£1K",incMult:25,  custMult:.02, desc:"Insane — one customer could make your year"},
 ];
 
 function currentFeeTier(){return FEE_TIERS.find(t=>t.fee===S.entryFee)||FEE_TIERS[2]}
-function feeIncomeMult(){return currentFeeTier().incMult}
-function feeCustMult(){return currentFeeTier().custMult}
+function feeIncomeMult(){
+  const tier=currentFeeTier();
+  // High satisfaction lets customers tolerate higher fees
+  // At 80+ satisfaction, fee income gets a bonus (customers feel it's worth it)
+  const sat=S.satisfaction||50;
+  const satBonus=sat>60?1+((sat-60)/100)*.5:sat<40?Math.max(.6,sat/40):1;
+  return tier.incMult*satBonus;
+}
+function feeCustMult(){
+  const tier=currentFeeTier();
+  // Satisfaction affects willingness to arrive — high sat = more arrive even at high fees
+  const sat=S.satisfaction||50;
+  const satFactor=sat>60?1+((sat-60)/100)*.6:sat<40?Math.max(.4,sat/40):1;
+  return tier.custMult*satFactor;
+}
 
 // Fee tiers unlock with progression (total buildings owned)
 function unlockedFeeTiers(){
@@ -532,34 +585,93 @@ function unlockedFeeTiers(){
 function setEntryFee(fee){
   S.entryFee=fee;
   const tier=currentFeeTier();
-  tick("Table minimum set to "+tier.label+". "+tier.desc);
+  tick("Entry fee set to "+tier.label+". "+tier.desc);
   sBuy();sv();render();
 }
 
 // ── Capacity System ───────────────────────────────────────────
-function capacityPercent(){return S.maxCapacity>0?Math.min(100,S.capacity/S.maxCapacity*100):0}
-function capacityIncomeMult(){return S.maxCapacity>0?Math.min(S.capacity,S.maxCapacity)/S.maxCapacity:0}
+// Capacity is NOT directly controlled. It's driven by:
+// - Entry fee (lower = more customers arrive)
+// - Satisfaction (higher = customers stay longer, more arrive)
+// - Natural churn (customers leave over time)
+function capacityPercent(){return S.maxCapacity>0?Math.min(120,S.capacity/S.maxCapacity*100):0}// Can overflow to 120% temporarily
+function capacityIncomeMult(){
+  // Income scales with how full the casino is
+  // Sweet spot: 60-80% gives full value. Above 100% doesn't help more.
+  const pct=capacityPercent();
+  if(pct<=0)return .02;// Nearly dead casino still earns a trickle
+  return Math.min(1,pct/100);
+}
 
-// ── Customer Satisfaction ─────────────────────────────────────
-function calcSatisfaction(){
+// ── Customer Satisfaction (DYNAMIC) ───────────────────────────
+// Satisfaction is NOT directly controlled. It's driven by:
+// - Overcrowding (>85% capacity = penalty, >100% = harsh)
+// - Undercrowding (<30% = "dead" feeling penalty)
+// - Building variety and upgrades boost base satisfaction
+// - Sweet spot is ~60-80% capacity
+function calcTargetSatisfaction(){
   let sat=50;// Base
-  // Building variety bonus: +5 per unique building type owned
+  // Building variety bonus: +4 per unique building type (up to +48)
   let types=0;for(const b of BUILDINGS)if(own(b.id)>0)types++;
-  sat+=types*5;
-  // Upgrades bonus: +1 per upgrade owned, capped at +20
-  sat+=Math.min(20,S.upgrades.length);
-  // Expansions bonus: +2 per expansion
+  sat+=types*4;
+  // Upgrades bonus: +0.8 per upgrade, capped at +20
+  sat+=Math.min(20,S.upgrades.length*.8);
+  // Expansions bonus: +2 per expansion (shows investment in comfort)
   sat+=(S.expansions||0)*2;
-  // Overcrowding penalty: above 85% capacity, satisfaction drops
+  // ── Capacity-driven effects (the core equilibrium) ──
   const capPct=capacityPercent();
-  if(capPct>85)sat-=Math.floor((capPct-85)*1.5);
-  if(capPct>95)sat-=Math.floor((capPct-95)*3);
-  // Clamp
+  // Sweet spot: 60-80% — no penalty, slight bonus
+  if(capPct>=60&&capPct<=80){
+    sat+=5;// Sweet spot bonus
+  }
+  // Undercrowding: below 30% feels dead
+  else if(capPct<30&&capPct>0){
+    sat-=Math.floor((30-capPct)*.4);// -0.4 per point below 30
+  }else if(capPct===0){
+    sat-=15;// Empty casino is very unsatisfying
+  }
+  // Getting busy: 80-85% is fine, slight tension
+  else if(capPct>80&&capPct<=85){
+    // No penalty yet, just no bonus
+  }
+  // Overcrowding: 85-100%
+  else if(capPct>85&&capPct<=100){
+    sat-=Math.floor((capPct-85)*1.2);// -1.2 per point over 85
+  }
+  // Severely overcrowded: >100%
+  else if(capPct>100){
+    sat-=18;// Base overcrowding hit
+    sat-=Math.floor((capPct-100)*2.5);// -2.5 per point over 100
+  }
+  // Clamp to 5-100
   return Math.max(5,Math.min(100,Math.round(sat)));
 }
 
-// Satisfaction affects how fast capacity fills (multiplier)
-function satisfactionMult(){return calcSatisfaction()/50}// 100% sat = 2x fill rate, 50% = 1x, 25% = 0.5x
+// Satisfaction smoothly moves toward target (doesn't snap)
+function tickSatisfaction(){
+  const target=calcTargetSatisfaction();
+  const current=S.satisfaction||50;
+  // Move 12% toward target per tick (smooth but responsive)
+  const diff=target-current;
+  S.satisfaction=current+diff*.12;
+  // Clamp
+  S.satisfaction=Math.max(5,Math.min(100,S.satisfaction));
+}
+
+// Satisfaction affects customer arrival rate
+function satisfactionArrivalMult(){
+  const sat=S.satisfaction||50;
+  // 100% sat = 2x arrivals, 50% = 1x, 25% = 0.5x
+  return sat/50;
+}
+
+// Satisfaction affects how fast customers leave (churn)
+function satisfactionChurnRate(){
+  const sat=S.satisfaction||50;
+  // High satisfaction = slower churn (customers stay longer)
+  // Base churn: 8%. At 100% sat: 4%. At 25% sat: 14%.
+  return .08+(.06*(1-sat/100));
+}
 
 // ── Expansion Upgrades (in store) ─────────────────────────────
 function expansionCost(){return Math.floor(500*Math.pow(3.5,S.expansions||0))}
@@ -569,7 +681,7 @@ function buyExpansion(){
   S.cash-=c;
   S.expansions=(S.expansions||0)+1;
   S.maxCapacity+=50;
-  sBuy();tick("Casino expanded! Max capacity now "+S.maxCapacity+".");
+  sBuy();tick("Casino expanded! Max capacity now "+S.maxCapacity+". More room for customers.");
   sv();render();
 }
 
@@ -584,9 +696,11 @@ function baseCPS(){
   return t;
 }
 function totalCPS(){
-  // Base income * entry fee multiplier * capacity multiplier
+  // Income = base CPS x entry fee multiplier x (capacity% / 100)
+  // Empty casino with high fee = terrible. Full casino with low fee = decent.
+  // Optimal: ~70-80% capacity with medium-high fee.
   const base=baseCPS();
-  const capMult=Math.max(.05,capacityIncomeMult());// At least 5% so you're not stuck at zero
+  const capMult=Math.max(.02,capacityIncomeMult());// Tiny trickle even when empty
   return base*feeIncomeMult()*capMult;
 }
 function clickValue(){return(1.5+baseCPS()*.05)*S.clickMult*S.pMult*(S.pClickMult||1)*feeIncomeMult()}
@@ -652,24 +766,27 @@ function autoTick(dt){
       S.cash+=earned;S.totalCash+=earned;
     }
 
-    // ── Capacity tick ──
-    // Customers arrive based on: building count (reputation) * fee customer mult * satisfaction
+    // ── Capacity tick (driven by fee + satisfaction equilibrium) ──
     let totalBuildings=0;for(const b of BUILDINGS)totalBuildings+=own(b.id);
     if(totalBuildings>0){
-      // Base arrival rate: scales with buildings owned
+      // Base arrival rate: scales with buildings owned (reputation)
       const baseArrival=Math.sqrt(totalBuildings)*1.2;
-      const arrival=baseArrival*feeCustMult()*satisfactionMult();
-      // Drain: customers leave at ~8% per tick (so capacity naturally decays)
-      const drain=S.capacity*.08;
-      // Net change
-      S.capacity=Math.max(0,Math.min(S.maxCapacity,S.capacity+arrival-drain));
+      // Arrivals modified by: fee customer mult AND satisfaction
+      const arrival=baseArrival*feeCustMult()*satisfactionArrivalMult();
+      // Churn rate depends on satisfaction (happy customers stay longer)
+      const churnRate=satisfactionChurnRate();
+      const drain=S.capacity*churnRate;
+      // Net change — can temporarily exceed maxCapacity (overcrowding)
+      const newCap=S.capacity+arrival-drain;
+      // Allow up to 120% overcrowding (creates pressure on satisfaction)
+      S.capacity=Math.max(0,Math.min(S.maxCapacity*1.2,newCap));
     }else{
       // No buildings = capacity drains to 0
       S.capacity=Math.max(0,S.capacity-.5);
     }
 
-    // Update satisfaction
-    S.satisfaction=calcSatisfaction();
+    // ── Satisfaction tick (smoothly tracks toward target) ──
+    tickSatisfaction();
 
     // Whale spawn — more frequent early game, settles to ~every 90s
     const whaleChance=(S.whalesCaught<3?.025:.012)*(S.whaleFreq||1);
@@ -791,7 +908,7 @@ function doPrestige(){
   S.cash=S.startCash||0;S.totalCash=S.cash;
   if(S.startDealers)S.owned.dealer=S.startDealers;
   if(S.startTables)S.owned.table=S.startTables;
-  // Reset casino systems to defaults on prestige
+  // Reset casino systems to defaults on prestige (satisfaction starts at 50, will dynamically adjust)
   S.entryFee=5;S.capacity=0;S.maxCapacity=50;S.satisfaction=50;S.expansions=0;
 
   tick("CASHED OUT. Earned "+earned+" chips. Total: "+S.chips+".");
@@ -896,7 +1013,7 @@ function render(){
   document.getElementById("cashNum").textContent=$(S.cash);
   document.getElementById("cps").textContent=cps>0?"earning "+$(cps)+" per second":"";
 
-  // ── Casino Systems UI ──
+  // ── Casino Systems UI (Interconnected Equilibrium) ──
   let totalBuildings=0;for(const b of BUILDINGS)totalBuildings+=own(b.id);
   const sysEl=document.getElementById("casinoSystems");
   if(totalBuildings>=1){
@@ -911,21 +1028,92 @@ function render(){
     feeBtns.innerHTML=fb;
     const tier=currentFeeTier();
     document.getElementById("feeVal").textContent=tier.label;
-    document.getElementById("feeDesc").textContent=tier.desc+" (income x"+tier.incMult.toFixed(1)+", customers x"+tier.custMult.toFixed(2)+")";
+    const effInc=feeIncomeMult().toFixed(1);
+    const effCust=feeCustMult().toFixed(2);
+    document.getElementById("feeDesc").textContent=tier.desc+" (income x"+effInc+", flow x"+effCust+")";
 
-    // Capacity bar
+    // Capacity bar with color coding
     const capPct=capacityPercent();
     const capBar=document.getElementById("capBar");
-    capBar.style.width=capPct.toFixed(1)+"%";
-    capBar.className="cap-bar-fill "+(capPct>=95?"full":capPct>=70?"high":capPct>=40?"mid":"low");
+    const cappedWidth=Math.min(100,capPct);
+    capBar.style.width=cappedWidth.toFixed(1)+"%";
+    // Color: dead(<30), low(30-60), sweet(60-80), high(80-95), full(>95)
+    let capClass="low";
+    if(capPct<15)capClass="dead";
+    else if(capPct<30)capClass="low";
+    else if(capPct>=60&&capPct<=80)capClass="sweet";
+    else if(capPct>80&&capPct<=95)capClass="high";
+    else if(capPct>95)capClass="full";
+    capBar.className="cap-bar-fill "+capClass;
     document.getElementById("capVal").textContent=Math.floor(S.capacity)+" / "+S.maxCapacity;
-    document.getElementById("capText").textContent=Math.floor(capPct)+"%"+(capPct>=100?" FULL":"");
+    // Capacity text with state indicator
+    let capLabel=Math.floor(capPct)+"%";
+    if(capPct>=100)capLabel+=" OVERCROWDED";
+    else if(capPct>=60&&capPct<=80)capLabel+=" SWEET SPOT";
+    else if(capPct<15&&capPct>0)capLabel+=" DEAD";
+    else if(capPct<30)capLabel+=" QUIET";
+    document.getElementById("capText").textContent=capLabel;
+    // Sweet spot zone indicator (always visible at 60-80%)
+    const sweetZone=document.getElementById("capSweetZone");
+    if(sweetZone){sweetZone.style.left="60%";sweetZone.style.width="20%"}
 
-    // Satisfaction
-    const sat=calcSatisfaction();
+    // Satisfaction (dynamic — emoji + bar + status)
+    const sat=Math.round(S.satisfaction||50);
     document.getElementById("satVal").textContent=sat+"%";
-    document.getElementById("satBar").style.width=sat+"%";
-    document.getElementById("satText").textContent=sat+"%"+(sat>=80?" Happy":sat>=60?" Content":sat>=40?" Meh":" Unhappy");
+    const satBar=document.getElementById("satBar");
+    satBar.style.width=sat+"%";
+    // Satisfaction bar color
+    let satClass="sat-ok";
+    if(sat>=75)satClass="sat-great";
+    else if(sat>=55)satClass="sat-good";
+    else if(sat>=35)satClass="sat-ok";
+    else satClass="sat-bad";
+    satBar.className="sat-bar-fill "+satClass;
+    document.getElementById("satText").textContent=sat+"%";
+    // Emoji
+    const emojiEl=document.getElementById("satEmoji");
+    if(emojiEl){
+      if(sat>=80)emojiEl.textContent="\uD83D\uDE04";
+      else if(sat>=65)emojiEl.textContent="\uD83D\uDE0A";
+      else if(sat>=50)emojiEl.textContent="\uD83D\uDE10";
+      else if(sat>=35)emojiEl.textContent="\uD83D\uDE1F";
+      else emojiEl.textContent="\uD83D\uDE21";
+    }
+    // Status text explaining WHY satisfaction is what it is
+    const statEl=document.getElementById("satStatus");
+    if(statEl){
+      let statusText="";let statusClass="";
+      if(capPct>100){statusText="Overcrowded! Customers are miserable";statusClass="bad"}
+      else if(capPct>85){statusText="Getting crowded — expand or raise fees";statusClass="warn"}
+      else if(capPct>=60&&capPct<=80){statusText="Perfect atmosphere — customers love it";statusClass="good"}
+      else if(capPct<15&&capPct>0){statusText="Casino feels dead — lower the fee";statusClass="bad"}
+      else if(capPct<30){statusText="Too quiet — could use more customers";statusClass="warn"}
+      else if(sat>=75){statusText="Customers are happy and spending freely";statusClass="good"}
+      else if(sat>=50){statusText="Customers are content";statusClass=""}
+      else{statusText="Customers are unhappy — check capacity";statusClass="warn"}
+      statEl.textContent=statusText;
+      statEl.className="sat-status"+(statusClass?" "+statusClass:"");
+    }
+
+    // Equilibrium summary — shows the overall state
+    const eqEl=document.getElementById("equilSummary");
+    if(eqEl){
+      const income=totalCPS();
+      let eqText="";let eqClass="";
+      if(capPct>=60&&capPct<=80&&sat>=65){
+        eqText="Equilibrium: excellent. Income "+$(income)+"/s";eqClass="good";
+      }else if(capPct>95){
+        eqText="Overcrowded! Raise fee or expand to restore balance";eqClass="bad";
+      }else if(capPct<20&&totalBuildings>3){
+        eqText="Casino is empty. Lower the entry fee to attract customers";eqClass="bad";
+      }else if(sat<40){
+        eqText="Satisfaction dropping. Adjust fee to improve capacity balance";eqClass="warn";
+      }else{
+        eqText="Income: "+$(income)+"/s. Adjust fee to find the sweet spot";eqClass="warn";
+      }
+      eqEl.textContent=eqText;
+      eqEl.className="equil-summary"+(eqClass?" "+eqClass:"");
+    }
   }else{
     sysEl.style.display="none";
   }
@@ -934,7 +1122,6 @@ function render(){
   let li="";
   li+=`<div class="info-row"><span>Hands dealt</span><span class="val">${S.hands}</span></div>`;
   li+=`<div class="info-row"><span>Per hand</span><span class="val">${$(clickValue())}</span></div>`;
-  if(totalBuildings>=1)li+=`<div class="info-row"><span>Customers</span><span class="val">${Math.floor(S.capacity)}/${S.maxCapacity}</span></div>`;
   if(S.whalesCaught>0)li+=`<div class="info-row"><span>Whales caught</span><span class="val">${S.whalesCaught}</span></div>`;
   if(S.prestiges>0)li+=`<div class="info-row"><span>Prestige</span><span class="val">${S.pMult.toFixed(2)}x</span></div>`;
   if((S.chips||0)>0)li+=`<div class="info-row"><span>Chips</span><span class="val" style="color:#fbbf24">${S.chips}</span></div>`;
@@ -1229,7 +1416,7 @@ function loop(){
 // ── Welcome Back (Offline Earnings) ────────────────────────
 function getSmartTip(offlineEarned){
   const capPct=capacityPercent();
-  const sat=calcSatisfaction();
+  const sat=Math.round(S.satisfaction||50);
   // Check for a building they can almost afford
   let nextBuyable=null;
   for(const b of BUILDINGS){
@@ -1254,7 +1441,7 @@ function showWelcomeBack(elapsed,earned){
   const m=Math.floor((elapsed%3600000)/60000);
   const durStr=h>0?h+" hour"+(h!==1?"s":"")+" "+m+" minute"+(m!==1?"s":""):m+" minute"+(m!==1?"s":"");
   const capPct=Math.floor(capacityPercent());
-  const sat=calcSatisfaction();
+  const sat=Math.round(S.satisfaction||50);
   const tip=getSmartTip(earned);
   const overlay=document.createElement("div");
   overlay.className="wb-overlay";
@@ -1308,4 +1495,4 @@ function showWelcomeBack(elapsed,earned){
 </body>
 </html>
 <!-- deployed -->
-<!-- v4 -->
+<!-- v5 — equilibrium rework -->
