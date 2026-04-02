@@ -59,6 +59,9 @@ body{font-family:Verdana,Geneva,sans-serif;background:#1a0a2e;color:#ddd;overflo
 
 /* Left panel info rows */
 .left-info{width:100%;margin-top:auto;padding-top:10px}
+.mini-stats{display:none;flex-wrap:wrap;justify-content:center;gap:6px 12px;font-size:9px;color:#8a8;margin-top:4px}
+.mini-stats .ms{white-space:nowrap}
+.mini-stats .ms .v{color:#ada;font-weight:600}
 .info-row{display:flex;justify-content:space-between;font-size:11px;padding:2px 4px;color:#8a8}
 .info-row .val{color:#ada;font-weight:600}
 
@@ -140,10 +143,9 @@ body{font-family:Verdana,Geneva,sans-serif;background:#1a0a2e;color:#ddd;overflo
   .cash-num{font-size:22px}
   .cash-label{font-size:8px}
   .cps{font-size:10px;margin-bottom:6px}
-  .left-info{padding-top:4px;margin-bottom:30px}
-  .info-row{font-size:9px;padding:1px 2px}
-  .left-info .val{font-size:9px}
-  .ticker{font-size:8px;padding:4px 8px;line-height:1.3}
+  .left-info{display:none}
+  .ticker{display:none}
+  .mini-stats{display:flex}
   .store-item .s-icon{font-size:22px;width:28px;margin-right:8px}
   .store-item .s-name{font-size:11px}
   .store-item .s-cost{font-size:11px;min-width:60px}
@@ -350,6 +352,7 @@ body{font-family:Verdana,Geneva,sans-serif;background:#1a0a2e;color:#ddd;overflo
 
     <div class="left-info" id="leftInfo"></div>
     <div class="ticker" id="ticker">Welcome to The House.</div>
+    <div class="mini-stats" id="miniStats"></div>
   </div>
 
   <!-- MIDDLE: Buildings owned -->
@@ -1145,6 +1148,12 @@ function render(){
   if(S.prestiges>0)li+=`<div class="info-row"><span>Prestige</span><span class="val">${S.pMult.toFixed(2)}x</span></div>`;
   if((S.chips||0)>0)li+=`<div class="info-row"><span>Chips</span><span class="val" style="color:#fbbf24">${S.chips}</span></div>`;
   document.getElementById("leftInfo").innerHTML=li;
+  // Compact mobile stats
+  let ms=`<span class="ms">Hands: <span class="v">${S.hands}</span></span>`;
+  ms+=`<span class="ms">Per hand: <span class="v">${$(clickValue())}</span></span>`;
+  if(S.whalesCaught>0)ms+=`<span class="ms">Whales: <span class="v">${S.whalesCaught}</span></span>`;
+  if(S.prestiges>0)ms+=`<span class="ms">Prestige: <span class="v">${S.pMult.toFixed(1)}x</span></span>`;
+  document.getElementById("miniStats").innerHTML=ms;
 
   // Middle: lifestyle only
   let bh="";
