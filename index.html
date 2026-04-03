@@ -6,14 +6,20 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="description" content="Build a gambling empire from a single card table. Click, automate, expand, prestige. Free browser idle game.">
-<meta property="og:title" content="House Edge — Casino Idle Game">
-<meta property="og:description" content="Build a gambling empire from a single card table. Cookie Clicker meets casino management.">
+<meta name="description" content="Free casino idle game — build a gambling empire from a single card table. Click, automate, expand, prestige. Like Cookie Clicker but you run a casino. No download, play in browser.">
+<meta name="keywords" content="idle game, clicker game, casino game, incremental game, browser game, free online game, cookie clicker alternative, casino idle, tycoon game">
+<meta property="og:title" content="House Edge — Free Casino Idle Game | Play Now">
+<meta property="og:description" content="Build a gambling empire from a single card table. Cookie Clicker meets casino management. Free browser game, no download.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://playhouseedge.com">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="House Edge — Casino Idle Game">
+<meta name="twitter:description" content="Build a gambling empire. Click, automate, expand, prestige. Free browser idle game.">
 <meta name="theme-color" content="#0a0a12">
+<link rel="canonical" href="https://playhouseedge.com">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🂡</text></svg>">
-<title>House Edge — Casino Idle Game</title>
+<title>House Edge — Free Casino Idle Game | Build a Gambling Empire</title>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoGame","name":"House Edge","description":"Build a gambling empire from a single card table. Free browser idle game with prestige system and equilibrium mechanics.","url":"https://playhouseedge.com","genre":["Idle","Clicker","Incremental","Tycoon"],"gamePlatform":"Web Browser","applicationCategory":"Game","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"GBP"}}</script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-GRJN6W2G35"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-GRJN6W2G35');</script>
 <script type="text/javascript">(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window,document,"clarity","script","w515fysbtc");</script>
@@ -150,6 +156,10 @@ body{font-family:Verdana,Geneva,sans-serif;background:#1a0a2e;color:#ddd;overflo
   .ticker{display:none}
   .mini-stats{display:flex;font-size:8px;gap:4px 8px;margin-top:2px}
   button[onclick*="sv()"]{margin:2px 0!important;padding:2px 10px!important;font-size:8px!important}
+  .streak-display{font-size:8px!important;gap:3px!important}
+  .streak-display .streak-flame{font-size:12px!important}
+  .streak-display .streak-num{font-size:11px!important}
+  .streak-display .streak-label{font-size:7px!important}
   .store-item .s-icon{font-size:22px;width:28px;margin-right:8px}
   .store-item .s-name{font-size:11px}
   .store-item .s-cost{font-size:11px;min-width:60px}
@@ -184,6 +194,46 @@ body{font-family:Verdana,Geneva,sans-serif;background:#1a0a2e;color:#ddd;overflo
 ::-webkit-scrollbar-track{background:#0a0a12}
 ::-webkit-scrollbar-thumb{background:#2a1a4a;border-radius:3px}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-2px)}75%{transform:translateX(2px)}}.shake{animation:shake .1s ease-in-out 2}
+
+/* ── Streak Display ─────────────────────────────────────── */
+.streak-display{display:flex;align-items:center;gap:6px;margin:4px 0;padding:4px 10px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);border-radius:6px}
+.streak-display .streak-flame{font-size:16px;animation:flamePulse 1.5s ease-in-out infinite}
+.streak-display .streak-num{font-size:16px;font-weight:700;color:#fbbf24;text-shadow:0 0 8px rgba(251,191,36,.3)}
+.streak-display .streak-label{font-size:9px;color:#a89050;line-height:1.2}
+.streak-display .streak-mult{font-size:10px;color:#4ade80;font-weight:600}
+@keyframes flamePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+
+/* ── Daily Bonus Modal ──────────────────────────────────── */
+.db-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.8);z-index:1001;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);animation:wbFadeIn .4s ease}
+.db-modal{background:linear-gradient(160deg,#1f0e3a 0%,#0d1b0e 100%);border:2px solid #fbbf24;border-radius:16px;padding:28px 32px;max-width:420px;width:90%;text-align:center;box-shadow:0 0 60px rgba(251,191,36,.2),0 4px 40px rgba(0,0,0,.6);animation:wbSlideUp .4s ease}
+.db-modal h2{color:#fbbf24;font-size:22px;margin-bottom:4px;text-shadow:0 0 12px rgba(251,191,36,.3)}
+.db-modal .db-sub{color:#a89050;font-size:11px;margin-bottom:16px}
+.db-modal .db-streak-display{display:flex;align-items:center;justify-content:center;gap:8px;margin:12px 0}
+.db-modal .db-streak-big{font-size:48px}
+.db-modal .db-streak-info{text-align:left}
+.db-modal .db-streak-count{font-size:24px;font-weight:700;color:#fbbf24}
+.db-modal .db-streak-text{font-size:11px;color:#a89050}
+.db-modal .db-amount{font-size:32px;font-weight:700;color:#fff;margin:12px 0 4px;text-shadow:0 0 14px rgba(74,222,128,.3)}
+.db-modal .db-breakdown{font-size:10px;color:#686;margin-bottom:4px}
+.db-modal .db-mult{display:inline-block;background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.3);border-radius:12px;padding:3px 10px;font-size:11px;color:#4ade80;font-weight:700;margin:6px 0 16px}
+.db-modal .db-next{font-size:9px;color:#686;margin-bottom:16px;padding:6px 10px;background:rgba(255,255,255,.03);border-radius:6px}
+.db-claim-btn{
+  background:linear-gradient(180deg,#b8860b,#8b6914);border:2px solid #fbbf24;color:#fff;
+  font-size:16px;font-weight:700;padding:12px 40px;border-radius:10px;cursor:pointer;
+  font-family:inherit;letter-spacing:1px;text-transform:uppercase;
+  transition:transform .1s,box-shadow .2s;
+  box-shadow:0 0 20px rgba(251,191,36,.2);
+}
+.db-claim-btn:hover{transform:scale(1.04);box-shadow:0 0 30px rgba(251,191,36,.35)}
+.db-claim-btn:active{transform:scale(.96)}
+@media(max-width:800px){
+  .db-modal{padding:22px 20px;max-width:340px}
+  .db-modal h2{font-size:18px}
+  .db-modal .db-amount{font-size:26px}
+  .db-modal .db-streak-big{font-size:36px}
+  .db-modal .db-streak-count{font-size:20px}
+  .db-claim-btn{font-size:14px;padding:10px 32px}
+}
 
 /* ── Welcome Back Modal ──────────────────────────────────── */
 .wb-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);z-index:1000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);animation:wbFadeIn .4s ease}
@@ -324,6 +374,11 @@ body{font-family:Verdana,Geneva,sans-serif;background:#1a0a2e;color:#ddd;overflo
       <button style="padding:4px 16px;background:rgba(251,191,36,.15);border:1px solid #fbbf24;color:#fbbf24;border-radius:4px;font-size:10px;cursor:pointer;letter-spacing:1px;text-shadow:0 0 6px rgba(251,191,36,.3)" onclick="sv();this.textContent='✓ Saved!';this.style.background='rgba(74,222,128,.2)';this.style.borderColor='#4ade80';this.style.color='#4ade80';setTimeout(()=>{this.textContent='Save';this.style.background='rgba(251,191,36,.15)';this.style.borderColor='#fbbf24';this.style.color='#fbbf24'},1500)">Save</button>
       <button id="musicBtn" style="padding:4px 8px;background:none;border:1px solid #555;color:#ddd;border-radius:4px;font-size:14px;cursor:pointer;opacity:.5" onclick="toggleMusic()" title="Toggle music">🎵</button>
       <script>try{if(localStorage.getItem("he_music")==="0"){document.getElementById("musicBtn").style.opacity=".5"}}catch{}</script>
+    </div>
+    <div class="streak-display" id="streakDisplay" style="display:none">
+      <span class="streak-flame">&#x1F525;</span>
+      <span class="streak-num" id="streakNum">0</span>
+      <span class="streak-label"><span id="streakLabel">day streak</span><br><span class="streak-mult" id="streakMult">1x bonus</span></span>
     </div>
 
     <!-- Casino Systems — Interconnected Equilibrium -->
@@ -576,8 +631,9 @@ const DEF={
   upgrades:[],
   // Whale
   whalesCaught:0,
-  // Daily
+  // Daily bonus system
   lastDaily:0,dailyStreak:0,
+  lastDailyClaimTime:0,dailyBonusStreak:0,
   // Prestige
   prestiges:0,pMult:1,chips:0,pUps:[],pClickMult:1,whaleFreq:1,startCash:0,startDealers:0,startTables:0,globalMult:1,
   seenUpgrades:[],hints:{},
@@ -618,6 +674,9 @@ let S;try{
     // Offline upgrade tiers backwards compat
     if(S.nightManagerTier===undefined)S.nightManagerTier=0;
     if(S.extendedHoursTier===undefined)S.extendedHoursTier=0;
+    // Daily bonus system backwards compat
+    if(S.lastDailyClaimTime===undefined)S.lastDailyClaimTime=0;
+    if(S.dailyBonusStreak===undefined)S.dailyBonusStreak=0;
   }else{S={...DEF}}
 }catch{S={...DEF}}
 S.saveVersion=SAVE_VERSION;
@@ -906,15 +965,127 @@ function catchWhale(){
   render();sv();
 }
 
-// ── Daily ──────────────────────────────────────────────────────
-function checkDaily(){
-  const now=new Date();const today=now.getFullYear()*10000+(now.getMonth()+1)*100+now.getDate();
-  if(S.lastDaily!==today){
-    S.lastDaily=today;S.dailyStreak++;
-    const bonus=100*S.dailyStreak*(1+Math.floor(S.totalCash/10000));
-    S.cash+=bonus;S.totalCash+=bonus;
-    tick("Daily bonus: +"+$(bonus)+" (day "+S.dailyStreak+")");
+// ── Daily Bonus System ─────────────────────────────────────────
+// Returns the streak multiplier for a given streak count
+function dailyStreakMult(streak){
+  if(streak>=7)return 5;
+  if(streak>=5)return 3;
+  if(streak>=3)return 2;
+  if(streak>=2)return 1.5;
+  return 1;
+}
+
+// Returns info about the next milestone
+function nextStreakMilestone(streak){
+  if(streak<2)return{day:2,mult:1.5};
+  if(streak<3)return{day:3,mult:2};
+  if(streak<5)return{day:5,mult:3};
+  if(streak<7)return{day:7,mult:5};
+  return null;// Already at max
+}
+
+// Check if daily bonus is available (20+ hours since last claim)
+function isDailyBonusAvailable(){
+  const now=Date.now();
+  const last=S.lastDailyClaimTime||0;
+  return(now-last)>=20*3600*1000;// 20 hours
+}
+
+// Check if streak should reset (48+ hours since last claim = missed a day)
+function checkStreakReset(){
+  const now=Date.now();
+  const last=S.lastDailyClaimTime||0;
+  if(last>0&&(now-last)>=48*3600*1000){
+    // Missed a day — reset streak
+    S.dailyBonusStreak=0;
+    try{localStorage.setItem("he_dailyStreak",String(S.dailyBonusStreak))}catch{}
   }
+}
+
+// Calculate the daily bonus amount (2 hours of passive income, minimum £100)
+function calcDailyBonus(){
+  const cps=totalCPS();
+  const baseBonus=Math.max(100,cps*7200);// 2 hours of income
+  const mult=dailyStreakMult(S.dailyBonusStreak+1);// +1 because this will be the new streak day
+  return{base:baseBonus,mult:mult,total:baseBonus*mult};
+}
+
+// Update streak display in left panel
+function updateStreakDisplay(){
+  const el=document.getElementById("streakDisplay");
+  if(!el)return;
+  const streak=S.dailyBonusStreak||0;
+  if(streak>0){
+    el.style.display="flex";
+    document.getElementById("streakNum").textContent=streak;
+    document.getElementById("streakLabel").textContent=streak===1?"day streak":"day streak";
+    document.getElementById("streakMult").textContent=dailyStreakMult(streak)+"x bonus";
+  }else{
+    el.style.display="none";
+  }
+  // Also persist to localStorage as backup
+  try{localStorage.setItem("he_dailyStreak",String(streak))}catch{}
+}
+
+// Show daily bonus popup
+function showDailyBonusPopup(afterOffline){
+  if(!isDailyBonusAvailable())return;
+  checkStreakReset();
+
+  const newStreak=S.dailyBonusStreak+1;
+  const bonus=calcDailyBonus();
+  const nextMs=nextStreakMilestone(newStreak);
+
+  let nextHtml="";
+  if(nextMs){
+    nextHtml='Day '+nextMs.day+': '+nextMs.mult+'x multiplier — keep coming back!';
+  }else{
+    nextHtml='Maximum streak bonus active! Keep it going!';
+  }
+
+  const overlay=document.createElement("div");
+  overlay.className="db-overlay";
+  overlay.innerHTML='<div class="db-modal">'
+    +'<h2>\u2B50 Daily Bonus!</h2>'
+    +'<div class="db-sub">Welcome back — here\'s your daily reward</div>'
+    +'<div class="db-streak-display">'
+    +'<div class="db-streak-big">\uD83D\uDD25</div>'
+    +'<div class="db-streak-info">'
+    +'<div class="db-streak-count">Day '+newStreak+'</div>'
+    +'<div class="db-streak-text">'+(newStreak>1?newStreak+' day streak!':'Start your streak!')+'</div>'
+    +'</div>'
+    +'</div>'
+    +'<div class="db-amount">'+$(bonus.total)+'</div>'
+    +'<div class="db-breakdown">Base: '+$(bonus.base)+' (2 hrs income)</div>'
+    +(bonus.mult>1?'<div class="db-mult">\uD83D\uDD25 '+bonus.mult+'x streak bonus</div>':'<div class="db-mult">Come back tomorrow for 1.5x!</div>')
+    +'<div class="db-next">'+nextHtml+'</div>'
+    +'<button class="db-claim-btn" id="dbClaim">Claim Bonus</button>'
+    +'</div>';
+  document.body.appendChild(overlay);
+
+  document.getElementById("dbClaim").onclick=function(){
+    // Update state
+    S.dailyBonusStreak=newStreak;
+    S.lastDailyClaimTime=Date.now();
+    S.cash+=bonus.total;
+    S.totalCash+=bonus.total;
+    // Also update legacy daily tracking
+    const now=new Date();
+    S.lastDaily=now.getFullYear()*10000+(now.getMonth()+1)*100+now.getDate();
+    S.dailyStreak=newStreak;
+    // Persist to localStorage as backup
+    try{localStorage.setItem("he_dailyStreak",String(newStreak));localStorage.setItem("he_lastDailyClaim",String(Date.now()))}catch{}
+    overlay.remove();
+    sJack();
+    tick("Daily bonus claimed: +"+$(bonus.total)+" (day "+newStreak+")");
+    updateStreakDisplay();
+    render();sv();
+  };
+}
+
+// Legacy checkDaily — now just triggers the popup system
+function checkDaily(){
+  // Handled by showDailyBonusPopup in init
 }
 
 // ── Prestige ───────────────────────────────────────────────────
@@ -975,6 +1146,7 @@ function doPrestige(){
   const keepP=S.prestiges+1;
   const keepPM=S.pMult;
   const keepD=S.lastDaily;const keepDS=S.dailyStreak;
+  const keepDCT=S.lastDailyClaimTime;const keepDBS=S.dailyBonusStreak;
   const keepW=S.whalesCaught;const keepBS=S.bestStreak;
   const keepPClick=S.pClickMult||1;
   const keepWhaleFreq=S.whaleFreq||1;
@@ -987,7 +1159,9 @@ function doPrestige(){
 
   Object.assign(S,{...DEF});
   S.chips=keepChips;S.pUps=keepPUps;S.prestiges=keepP;S.pMult=keepPM;
-  S.lastDaily=keepD;S.dailyStreak=keepDS;S.whalesCaught=keepW;S.bestStreak=keepBS;
+  S.lastDaily=keepD;S.dailyStreak=keepDS;
+  S.lastDailyClaimTime=keepDCT;S.dailyBonusStreak=keepDBS;
+  S.whalesCaught=keepW;S.bestStreak=keepBS;
   S.pClickMult=keepPClick;S.whaleFreq=keepWhaleFreq;
   S.startCash=keepStartCash;S.startDealers=keepStartDealers;S.startTables=keepStartTables;
   S.globalMult=keepGlobalMult;
@@ -1490,6 +1664,7 @@ function render(){
   }
 
   document.getElementById("storeList").innerHTML=sl;
+  updateStreakDisplay();
 }
 
 // ── Loop ───────────────────────────────────────────────────────
@@ -1567,22 +1742,36 @@ function showWelcomeBack(elapsed,earned){
     sWin();
     tick("Collected "+$(earned)+" from offline earnings.");
     render();sv();
+    // After collecting offline earnings, show daily bonus if available
+    if(isDailyBonusAvailable()){
+      setTimeout(()=>showDailyBonusPopup(),400);
+    }
   };
 }
 
 (function(){
+  // Recover streak from localStorage if save was lost
+  try{
+    const lsStreak=parseInt(localStorage.getItem("he_dailyStreak")||"0",10);
+    const lsClaim=parseInt(localStorage.getItem("he_lastDailyClaim")||"0",10);
+    if(lsStreak>S.dailyBonusStreak)S.dailyBonusStreak=lsStreak;
+    if(lsClaim>S.lastDailyClaimTime)S.lastDailyClaimTime=lsClaim;
+  }catch{}
+  checkStreakReset();
+
   const el=Date.now()-(S.lt||Date.now());
   const cps=totalCPS();
-  checkDaily();
   S.lt=Date.now();
+
   if(el>60000&&cps>0){
     // Away 60s+: show Welcome Back modal (capped by Extended Hours, efficiency from Night Manager)
     const secs=Math.min(el,maxOfflineHours()*3600000)/1000;
     const earned=cps*secs*offlineEfficiency();
     render();
+    // Show offline earnings popup, then daily bonus popup after collecting
     showWelcomeBack(el,earned);
   }else{
-    // Quick refresh or no CPS — silent
+    // Quick refresh or no CPS — silent offline earnings
     if(el>10000&&cps>0){
       const secs=Math.min(el,maxOfflineHours()*3600000)/1000;
       const earned=cps*secs*offlineEfficiency();
@@ -1590,6 +1779,10 @@ function showWelcomeBack(elapsed,earned){
     }
     tick("The House is open.");
     render();
+    // Show daily bonus popup if available (no offline popup to wait for)
+    if(isDailyBonusAvailable()){
+      setTimeout(()=>showDailyBonusPopup(),300);
+    }
   }
   sv();
   requestAnimationFrame(loop);
