@@ -396,6 +396,16 @@ body{font-family:Verdana,Geneva,sans-serif;background:#1a0a2e;color:#ddd;overflo
       <span class="streak-label"><span id="streakLabel">day streak</span><br><span class="streak-mult" id="streakMult">1x bonus</span></span>
     </div>
 
+    <!-- Daily bonus countdown -->
+    <div id="bonusCountdown" style="display:none;font-size:9px;color:#fbbf24;text-align:center;margin:2px 0;opacity:.8"></div>
+
+    <!-- Export / Import save -->
+    <div style="display:flex;gap:4px;margin:2px 0;justify-content:center">
+      <button style="padding:2px 8px;background:none;border:1px solid #333;color:#8a8;border-radius:3px;font-size:8px;cursor:pointer;letter-spacing:.5px" onclick="exportSave()" title="Copy save to clipboard">Export</button>
+      <button style="padding:2px 8px;background:none;border:1px solid #333;color:#8a8;border-radius:3px;font-size:8px;cursor:pointer;letter-spacing:.5px" onclick="importSave()" title="Paste save from clipboard">Import</button>
+    </div>
+    <div style="font-size:7px;color:#555;text-align:center;margin-bottom:2px">Progress saved in this browser only</div>
+
     <!-- Casino Systems — Interconnected Equilibrium -->
     <div class="casino-systems" id="casinoSystems" style="display:none">
       <div class="sys-section" id="feeSection">
@@ -711,6 +721,78 @@ function shareProgress(){
   if(navigator.share){navigator.share({title:"House Edge",text:text}).catch(()=>{})}
   else{navigator.clipboard.writeText(text).then(()=>{const b=event.target;b.textContent="✓";setTimeout(()=>b.textContent="📤",1500)}).catch(()=>{})}
 }
+// Export / Import save
+function exportSave(){
+  sv();const data=localStorage.getItem("houseG");
+  if(!data){alert("No save found!");return}
+  const encoded=btoa(data);
+  navigator.clipboard.writeText(encoded).then(()=>{
+    const b=event.target;b.textContent="✓ Copied!";b.style.color="#4ade80";b.style.borderColor="#4ade80";
+    setTimeout(()=>{b.textContent="Export";b.style.color="#8a8";b.style.borderColor="#333"},2000);
+  }).catch(()=>{
+    // Fallback: prompt with text
+    prompt("Copy this save code:",encoded);
+  });
+}
+function importSave(){
+  const encoded=prompt("Paste your save code:");
+  if(!encoded||!encoded.trim())return;
+  try{
+    const json=atob(encoded.trim());
+    const parsed=JSON.parse(json);
+    if(!parsed.cash&&parsed.cash!==0){alert("Invalid save data!");return}
+    if(!confirm("This will overwrite your current progress. Continue?"))return;
+    localStorage.setItem("houseG",json);
+    location.reload();
+  }catch{alert("Invalid save code!")}
+}
+
+// Daily bonus countdown timer
+function updateBonusCountdown(){
+  const el=document.getElementById("bonusCountdown");if(!el)return;
+  const last=S.lastDailyClaimTime||0;
+  const nextAvail=last+20*60*60*1000;
+  const now=Date.now();
+  if(now>=nextAvail){el.style.display="block";el.textContent="🎁 Daily bonus ready!";el.style.color="#4ade80";return}
+  const diff=nextAvail-now;
+  const h=Math.floor(diff/3600000);const m=Math.floor((diff%3600000)/60000);
+  el.style.display="block";el.textContent="🎁 Next bonus: "+h+"h "+m+"m";el.style.color="#fbbf24";
+}
+setInterval(updateBonusCountdown,30000);
+setTimeout(updateBonusCountdown,1000);
+
+// Push notifications
+let pushAsked=false;
+function askPushPermission(){
+  if(pushAsked||!("Notification" in window))return;
+  if(Notification.permission==="granted"){schedulePushReminder();return}
+  if(Notification.permission==="denied")return;
+  // Ask after 2nd daily bonus claim
+  if((S.dailyBonusStreak||0)<2)return;
+  pushAsked=true;
+  Notification.requestPermission().then(p=>{if(p==="granted")schedulePushReminder()});
+}
+function schedulePushReminder(){
+  // Check every 5 minutes if daily bonus is available and tab is hidden
+  setInterval(()=>{
+    if(document.hidden&&Notification.permission==="granted"){
+      const last=S.lastDailyClaimTime||0;
+      const nextAvail=last+20*60*60*1000;
+      if(Date.now()>=nextAvail){
+        // Only notify once per availability
+        const notifKey="he_lastNotif";
+        const lastNotif=parseInt(localStorage.getItem(notifKey)||"0");
+        if(Date.now()-lastNotif>20*60*60*1000){
+          new Notification("🂡 House Edge",{body:"Your daily bonus is ready! Claim your reward.",icon:"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🂡</text></svg>"});
+          localStorage.setItem(notifKey,String(Date.now()));
+        }
+      }
+    }
+  },5*60*1000);
+}
+// Try to set up push on load if already granted
+if("Notification" in window&&Notification.permission==="granted")schedulePushReminder();
+
 // Save on tab close / navigate away
 window.addEventListener("beforeunload",()=>{sv()});
 // Save on visibility change (mobile tab switch)
@@ -1109,7 +1191,10 @@ function showDailyBonusPopup(afterOffline){
     sJack();
     tick("Daily bonus claimed: +"+$(bonus.total)+" (day "+newStreak+")");
     updateStreakDisplay();
+    updateBonusCountdown();
     render();sv();
+    // Ask for push notification permission after 2nd daily claim
+    setTimeout(askPushPermission,2000);
   };
 }
 
