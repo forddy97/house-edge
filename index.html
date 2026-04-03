@@ -91,6 +91,7 @@ body{font-family:Verdana,Geneva,sans-serif;background:#1a0a2e;color:#ddd;overflo
 }
 .whale:hover{box-shadow:0 0 30px rgba(255,215,0,.6);transform:scale(1.1)}
 @keyframes whaleBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
 /* ── Middle: Building rows ───────────────────────────────────── */
 .building-row{
@@ -367,9 +368,20 @@ body{font-family:Verdana,Geneva,sans-serif;background:#1a0a2e;color:#ddd;overflo
     </div>
     <div class="cps" id="cps"></div>
 
+    <!-- Onboarding hint (disappears after first click) -->
+    <div id="onboardHint" style="font-size:11px;color:#4ade80;text-align:center;margin-bottom:4px;animation:pulse 1.5s ease-in-out infinite">👇 Click to deal your first hand!</div>
+
     <div class="click-btn" id="clickBtn" onclick="deal(event)">
       <div class="icon">🂡</div>
       <div class="label">Deal</div>
+    </div>
+
+    <!-- Progress toward first Dealer -->
+    <div id="firstGoal" style="width:100%;max-width:200px;margin:4px 0;text-align:center">
+      <div style="font-size:9px;color:#8a8;margin-bottom:2px">First Dealer: <span id="goalProg">£0</span> / £15</div>
+      <div style="height:4px;background:#1a1a2a;border-radius:2px;overflow:hidden">
+        <div id="goalBar" style="height:100%;width:0%;background:linear-gradient(90deg,#4ade80,#34d399);border-radius:2px;transition:width .3s"></div>
+      </div>
     </div>
 
     <div style="display:flex;gap:6px;margin:6px 0;align-items:center">
@@ -859,6 +871,8 @@ function clickValue(){return(1.5+baseCPS()*.05)*S.clickMult*S.pMult*(S.pClickMul
 
 // ── Deal (click) ───────────────────────────────────────────────
 function deal(ev){
+  // Hide onboarding hint after first click
+  const hint=document.getElementById("onboardHint");if(hint)hint.style.display="none";
   sClick();S.hands++;
   const cv=clickValue();
   // 60% win, 40% lose (net positive due to win amounts > loss amounts)
@@ -1293,8 +1307,15 @@ function render(){
   document.getElementById("cashNum").textContent=$(S.cash);
   document.getElementById("cps").textContent=cps>0?"earning "+$(cps)+" per second":"";
 
-  // ── Casino Systems UI (Interconnected Equilibrium) ──
+  // ── Onboarding: first Dealer goal bar ──
   let totalBuildings=0;for(const b of BUILDINGS)totalBuildings+=own(b.id);
+  const goalEl=document.getElementById("firstGoal");
+  if(goalEl){
+    if(totalBuildings>0){goalEl.style.display="none";const h=document.getElementById("onboardHint");if(h)h.style.display="none"}
+    else{goalEl.style.display="block";const p=Math.min(100,(S.cash/15)*100);document.getElementById("goalBar").style.width=p+"%";document.getElementById("goalProg").textContent=$(S.cash)}
+  }
+
+  // ── Casino Systems UI (Interconnected Equilibrium) ──
   const sysEl=document.getElementById("casinoSystems");
   if(totalBuildings>=1){
     sysEl.style.display="block";
