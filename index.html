@@ -356,6 +356,50 @@ body{font-family:Verdana,Geneva,sans-serif;background:#1a0a2e;color:#ddd;overflo
   .sat-bar-wrap{height:6px}
   .equil-summary{font-size:6px;padding:1px 3px;margin-top:1px}
 }
+
+/* ── Improved Welcome Back Modal ──────────────────────────── */
+.wb-comparison{font-size:11px;color:#8a8;margin:8px 0 4px;line-height:1.5}
+.wb-comparison strong{color:#4ade80}
+.wb-counter{font-size:36px;font-weight:700;color:#4ade80;margin:12px 0 4px;text-shadow:0 0 14px rgba(74,222,128,.4);font-variant-numeric:tabular-nums}
+.wb-collect-btn{
+  background:linear-gradient(180deg,#2d8a4e,#1a5a30);border:2px solid #4ade80;color:#fff;
+  font-size:18px;font-weight:700;padding:14px 48px;border-radius:12px;cursor:pointer;
+  font-family:inherit;letter-spacing:2px;text-transform:uppercase;
+  transition:transform .1s,box-shadow .2s;
+  box-shadow:0 0 30px rgba(74,222,128,.3),0 4px 20px rgba(0,0,0,.4);
+  animation:collectPulse 2s ease-in-out infinite;
+}
+@keyframes collectPulse{0%,100%{box-shadow:0 0 30px rgba(74,222,128,.3)}50%{box-shadow:0 0 50px rgba(74,222,128,.5)}}
+.wb-collect-btn:hover{transform:scale(1.06);box-shadow:0 0 50px rgba(74,222,128,.5)}
+.wb-collect-btn:active{transform:scale(.94)}
+
+/* ── Milestone Card Modal ─────────────────────────────────── */
+.ms-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.85);z-index:1002;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);animation:wbFadeIn .4s ease}
+.ms-modal{background:linear-gradient(160deg,#1a0a3a 0%,#0a1a0e 100%);border:2px solid #fbbf24;border-radius:16px;padding:28px 32px;max-width:420px;width:90%;text-align:center;box-shadow:0 0 80px rgba(251,191,36,.25);animation:wbSlideUp .5s ease}
+.ms-modal h2{color:#fbbf24;font-size:20px;margin-bottom:2px;text-shadow:0 0 12px rgba(251,191,36,.4)}
+.ms-modal .ms-title{font-size:28px;font-weight:700;color:#fff;margin:12px 0;text-shadow:0 0 10px rgba(255,255,255,.2)}
+.ms-modal .ms-stats{display:flex;justify-content:center;gap:16px;margin:16px 0;flex-wrap:wrap}
+.ms-modal .ms-stat{text-align:center;min-width:60px}
+.ms-modal .ms-stat-val{font-size:16px;font-weight:700;color:#4ade80}
+.ms-modal .ms-stat-label{font-size:8px;color:#888;margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
+.ms-modal .ms-actions{display:flex;gap:8px;justify-content:center;margin-top:18px;flex-wrap:wrap}
+.ms-modal .ms-btn{padding:10px 20px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;letter-spacing:.5px;transition:transform .1s}
+.ms-modal .ms-btn:hover{transform:scale(1.04)}
+.ms-modal .ms-btn:active{transform:scale(.96)}
+.ms-btn-share{background:linear-gradient(180deg,#1a5a30,#0d3318);border:2px solid #4ade80;color:#4ade80}
+.ms-btn-copy{background:linear-gradient(180deg,#3a2a0a,#2a1a0a);border:2px solid #fbbf24;color:#fbbf24}
+.ms-btn-close{background:none;border:1px solid #555;color:#888}
+@media(max-width:800px){
+  .ms-modal{padding:20px 18px;max-width:340px}
+  .ms-modal h2{font-size:16px}
+  .ms-modal .ms-title{font-size:22px}
+  .ms-modal .ms-btn{padding:8px 14px;font-size:11px}
+}
+
+/* ── VIP Lounge (prestige-exclusive) ──────────────────────── */
+.store-item.vip-item{border:1px solid #fbbf24;background:linear-gradient(90deg,rgba(251,191,36,.05),rgba(251,191,36,.02))}
+.store-item.vip-item .s-name{color:#fbbf24}
+.vip-label{display:inline-block;font-size:7px;color:#fbbf24;background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.3);border-radius:3px;padding:1px 4px;margin-left:6px;letter-spacing:.5px;text-transform:uppercase;vertical-align:middle}
 </style>
 </head>
 <body>
@@ -544,6 +588,7 @@ const BUILDINGS=[
   {id:"server",n:"Server Farm",   icon:"🖥️",desc:"Process a million bets a minute.",   baseCost:75000000000,baseProd:900000,mw:0},
   {id:"island",n:"Private Island",icon:"🏝️",desc:"Where the real money is made.",      baseCost:1000000000000,baseProd:6000000,mw:0},
   {id:"algo",  n:"The Algorithm",  icon:"👁️",desc:"You are the house.",baseCost:14000000000000,baseProd:40000000,mw:0},
+  {id:"viplounge",n:"VIP Lounge",icon:"👑",desc:"Exclusive high-roller experience.",baseCost:1000000,baseProd:5000,mw:0,prestige:true},
 ];
 
 // ── Upgrades (Cookie Clicker has ~700, we need depth) ──────────
@@ -646,6 +691,11 @@ const UPGRADES=[
   {id:"m5", n:"Industry Giant",   icon:"📈",desc:"All buildings +20%. Own 200 total.",cost:50000000,cat:"global",mult:1.2,req:S=>{let t=0;for(const b of BUILDINGS)t+=own(b.id);return t>=200}},
   {id:"m6", n:"Monopoly",         icon:"📈",desc:"All buildings +25%. Own 500 total.",cost:50000000000,cat:"global",mult:1.25,req:S=>{let t=0;for(const b of BUILDINGS)t+=own(b.id);return t>=500}},
   {id:"m7", n:"World Domination",  icon:"🌍",desc:"All buildings +50%. Own 1000 total.",cost:50000000000000,cat:"global",mult:1.5,req:S=>{let t=0;for(const b of BUILDINGS)t+=own(b.id);return t>=1000}},
+
+  // ── VIP Lounge upgrades (prestige-exclusive) ──
+  {id:"vip1",n:"Champagne Service",icon:"🥂",desc:"VIP Lounge is twice as productive.",cost:5000000,cat:"building",target:"viplounge",mult:2,req:S=>S.prestiges>=1&&own("viplounge")>=1},
+  {id:"vip2",n:"Private High Stakes",icon:"💎",desc:"VIP Lounge is twice as productive.",cost:50000000,cat:"building",target:"viplounge",mult:2,req:S=>S.prestiges>=1&&own("viplounge")>=5},
+  {id:"vip3",n:"Platinum Membership",icon:"🏆",desc:"VIP Lounge is twice as productive.",cost:500000000,cat:"building",target:"viplounge",mult:2,req:S=>S.prestiges>=1&&own("viplounge")>=10},
 ];
 
 // ── State ──────────────────────────────────────────────────────
@@ -670,7 +720,11 @@ const DEF={
   entryFee:10,
   capacity:0,maxCapacity:50,
   satisfaction:50,// Now dynamic — tracks smoothly toward target
-  expansions:0
+  expansions:0,
+  // Milestones
+  milestonesShown:[],
+  // Notification tracking
+  notifSent:false,notifLeaveTime:0
 };
 const SAVE_VERSION=4;
 let S;try{
@@ -703,6 +757,10 @@ let S;try{
     // Daily bonus system backwards compat
     if(S.lastDailyClaimTime===undefined)S.lastDailyClaimTime=0;
     if(S.dailyBonusStreak===undefined)S.dailyBonusStreak=0;
+    // Milestones backwards compat
+    if(!Array.isArray(S.milestonesShown))S.milestonesShown=[];
+    if(S.notifSent===undefined)S.notifSent=false;
+    if(S.notifLeaveTime===undefined)S.notifLeaveTime=0;
   }else{S={...DEF}}
 }catch{S={...DEF}}
 S.saveVersion=SAVE_VERSION;
@@ -762,42 +820,58 @@ function updateBonusCountdown(){
 setInterval(updateBonusCountdown,30000);
 setTimeout(updateBonusCountdown,1000);
 
-// Push notifications
+// Push notifications — improved system
 let pushAsked=false;
+let notifTimeout=null;
+const NOTIF_DELAY=2*60*60*1000;// 2 hours after leaving
+
 function askPushPermission(){
   if(pushAsked||!("Notification" in window))return;
-  if(Notification.permission==="granted"){schedulePushReminder();return}
+  if(Notification.permission==="granted")return;
   if(Notification.permission==="denied")return;
-  // Ask after 2nd daily bonus claim
-  if((S.dailyBonusStreak||0)<2)return;
   pushAsked=true;
-  Notification.requestPermission().then(p=>{if(p==="granted")schedulePushReminder()});
+  Notification.requestPermission();
 }
-function schedulePushReminder(){
-  // Check every 5 minutes if daily bonus is available and tab is hidden
-  setInterval(()=>{
-    if(document.hidden&&Notification.permission==="granted"){
-      const last=S.lastDailyClaimTime||0;
-      const nextAvail=last+20*60*60*1000;
-      if(Date.now()>=nextAvail){
-        // Only notify once per availability
-        const notifKey="he_lastNotif";
-        const lastNotif=parseInt(localStorage.getItem(notifKey)||"0");
-        if(Date.now()-lastNotif>20*60*60*1000){
-          new Notification("🂡 House Edge",{body:"Your daily bonus is ready! Claim your reward.",icon:"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🂡</text></svg>"});
-          localStorage.setItem(notifKey,String(Date.now()));
-        }
-      }
-    }
-  },5*60*1000);
+
+// After 5 minutes of play, request permission
+let playStartTime=Date.now();
+setTimeout(()=>{
+  if("Notification" in window&&Notification.permission==="default"){
+    askPushPermission();
+  }
+},5*60*1000);
+
+function sendOfflineNotification(){
+  if(!("Notification" in window)||Notification.permission!=="granted")return;
+  if(S.notifSent)return;// Only one per absence
+  const cps=totalCPS();
+  if(cps<=0)return;
+  const estimatedEarned=cps*NOTIF_DELAY/1000*offlineEfficiency();
+  S.notifSent=true;
+  try{localStorage.setItem("houseG",JSON.stringify(S))}catch{}
+  new Notification("\uD83C\uDFB0 House Edge",{
+    body:"Your casino earned "+$(estimatedEarned)+" while you were away! Come collect your earnings.",
+    icon:"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🂡</text></svg>",
+    tag:"he-offline"// Prevents duplicate notifications
+  });
 }
-// Try to set up push on load if already granted
-if("Notification" in window&&Notification.permission==="granted")schedulePushReminder();
 
 // Save on tab close / navigate away
 window.addEventListener("beforeunload",()=>{sv()});
-// Save on visibility change (mobile tab switch)
-document.addEventListener("visibilitychange",()=>{if(document.hidden)sv()});
+// Save + schedule notification on visibility change
+document.addEventListener("visibilitychange",()=>{
+  if(document.hidden){
+    sv();
+    S.notifSent=false;// Reset for new absence
+    // Schedule notification for 2 hours from now
+    if(notifTimeout)clearTimeout(notifTimeout);
+    notifTimeout=setTimeout(sendOfflineNotification,NOTIF_DELAY);
+  }else{
+    // Came back — cancel pending notification
+    if(notifTimeout){clearTimeout(notifTimeout);notifTimeout=null}
+    S.notifSent=false;
+  }
+});
 function $(n){if(n<0)return"-"+$(-n);if(n>=1e12)return"£"+(n/1e12).toFixed(2)+"T";if(n>=1e9)return"£"+(n/1e9).toFixed(2)+"B";if(n>=1e6)return"£"+(n/1e6).toFixed(2)+"M";if(n>=1000)return"£"+n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,",");return"£"+n.toFixed(2)}
 function own(id){return S.owned[id]||0}
 function bMult(id){return S.buildingMult[id]||1}
@@ -1079,22 +1153,18 @@ function catchWhale(){
 }
 
 // ── Daily Bonus System ─────────────────────────────────────────
-// Returns the streak multiplier for a given streak count
-function dailyStreakMult(streak){
-  if(streak>=7)return 5;
-  if(streak>=5)return 3;
-  if(streak>=3)return 2;
-  if(streak>=2)return 1.5;
-  return 1;
+// Streak-based hours: Day 1=1hr, Day 2=2hr, Day 3=4hr, Day 4=8hr, Day 5=12hr, Day 6=18hr, Day 7=24hr
+const DAILY_HOURS=[1,2,4,8,12,18,24];
+function dailyBonusHours(dayNum){
+  const idx=Math.min(dayNum,7)-1;
+  return DAILY_HOURS[Math.max(0,idx)];
 }
 
-// Returns info about the next milestone
-function nextStreakMilestone(streak){
-  if(streak<2)return{day:2,mult:1.5};
-  if(streak<3)return{day:3,mult:2};
-  if(streak<5)return{day:5,mult:3};
-  if(streak<7)return{day:7,mult:5};
-  return null;// Already at max
+// Returns info about the next day's reward
+function nextStreakInfo(streak){
+  if(streak>=7)return null;// At max, will cycle
+  const nextDay=streak+1;
+  return{day:nextDay,hours:dailyBonusHours(nextDay)};
 }
 
 // Check if daily bonus is available (20+ hours since last claim)
@@ -1109,19 +1179,23 @@ function checkStreakReset(){
   const now=Date.now();
   const last=S.lastDailyClaimTime||0;
   if(last>0&&(now-last)>=48*3600*1000){
-    // Missed a day — reset streak
+    // Missed a day — reset streak to 0 (will become day 1 on claim)
     S.dailyBonusStreak=0;
     try{localStorage.setItem("he_dailyStreak",String(S.dailyBonusStreak))}catch{}
   }
 }
 
-// Calculate the daily bonus amount (2 hours of passive income, minimum £100)
+// Calculate the daily bonus amount
 function calcDailyBonus(){
   const cps=totalCPS();
-  const baseBonus=Math.max(100,cps*7200);// 2 hours of income
-  const mult=dailyStreakMult(S.dailyBonusStreak+1);// +1 because this will be the new streak day
-  return{base:baseBonus,mult:mult,total:baseBonus*mult};
+  const newDay=((S.dailyBonusStreak)%7)+1;// Cycles after day 7
+  const hours=dailyBonusHours(newDay);
+  const baseBonus=Math.max(100,cps*3600*hours);
+  return{base:baseBonus,hours:hours,day:newDay,total:baseBonus};
 }
+
+// Legacy compat
+function dailyStreakMult(streak){return 1;}
 
 // Update streak display in left panel
 function updateStreakDisplay(){
@@ -1131,8 +1205,9 @@ function updateStreakDisplay(){
   if(streak>0){
     el.style.display="flex";
     document.getElementById("streakNum").textContent=streak;
-    document.getElementById("streakLabel").textContent=streak===1?"day streak":"day streak";
-    document.getElementById("streakMult").textContent=dailyStreakMult(streak)+"x bonus";
+    const dayInCycle=((streak-1)%7)+1;
+    document.getElementById("streakLabel").textContent="day streak";
+    document.getElementById("streakMult").textContent="Day "+dayInCycle+"/7";
   }else{
     el.style.display="none";
   }
@@ -1145,15 +1220,28 @@ function showDailyBonusPopup(afterOffline){
   if(!isDailyBonusAvailable())return;
   checkStreakReset();
 
-  const newStreak=S.dailyBonusStreak+1;
   const bonus=calcDailyBonus();
-  const nextMs=nextStreakMilestone(newStreak);
+  const newDay=bonus.day;
+  const newStreak=S.dailyBonusStreak+1;
+  const nextInfo=nextStreakInfo(newDay);
+
+  // Build day indicators (7 dots showing progress)
+  let dotsHtml='<div style="display:flex;gap:6px;justify-content:center;margin:12px 0">';
+  for(let i=1;i<=7;i++){
+    const hrs=dailyBonusHours(i);
+    const active=i===newDay;
+    const completed=i<newDay||(newDay===1&&S.dailyBonusStreak>=7);
+    const col=active?'#fbbf24':completed?'#4ade80':'#555';
+    const bg=active?'rgba(251,191,36,.2)':completed?'rgba(74,222,128,.1)':'transparent';
+    dotsHtml+='<div style="text-align:center;min-width:28px"><div style="width:24px;height:24px;border-radius:50%;border:2px solid '+col+';background:'+bg+';display:flex;align-items:center;justify-content:center;font-size:10px;color:'+col+';font-weight:700;margin:0 auto">'+(completed&&!active?'&#10003;':i)+'</div><div style="font-size:7px;color:'+col+';margin-top:2px">'+hrs+'hr</div></div>';
+  }
+  dotsHtml+='</div>';
 
   let nextHtml="";
-  if(nextMs){
-    nextHtml='Day '+nextMs.day+': '+nextMs.mult+'x multiplier — keep coming back!';
+  if(nextInfo){
+    nextHtml='Tomorrow (Day '+nextInfo.day+'): '+nextInfo.hours+' hours of earnings!';
   }else{
-    nextHtml='Maximum streak bonus active! Keep it going!';
+    nextHtml='Day 7 complete! Streak resets to Day 1 tomorrow. Keep playing!';
   }
 
   const overlay=document.createElement("div");
@@ -1164,13 +1252,14 @@ function showDailyBonusPopup(afterOffline){
     +'<div class="db-streak-display">'
     +'<div class="db-streak-big">\uD83D\uDD25</div>'
     +'<div class="db-streak-info">'
-    +'<div class="db-streak-count">Day '+newStreak+'</div>'
+    +'<div class="db-streak-count">Day '+newDay+' of 7</div>'
     +'<div class="db-streak-text">'+(newStreak>1?newStreak+' day streak!':'Start your streak!')+'</div>'
     +'</div>'
     +'</div>'
+    +dotsHtml
     +'<div class="db-amount">'+$(bonus.total)+'</div>'
-    +'<div class="db-breakdown">Base: '+$(bonus.base)+' (2 hrs income)</div>'
-    +(bonus.mult>1?'<div class="db-mult">\uD83D\uDD25 '+bonus.mult+'x streak bonus</div>':'<div class="db-mult">Come back tomorrow for 1.5x!</div>')
+    +'<div class="db-breakdown">'+bonus.hours+' hour'+(bonus.hours>1?'s':'')+' of passive income</div>'
+    +'<div class="db-mult">\uD83D\uDD25 Day '+newDay+' reward</div>'
     +'<div class="db-next">'+nextHtml+'</div>'
     +'<button class="db-claim-btn" id="dbClaim">Claim Bonus</button>'
     +'</div>';
@@ -1190,10 +1279,12 @@ function showDailyBonusPopup(afterOffline){
     try{localStorage.setItem("he_dailyStreak",String(newStreak));localStorage.setItem("he_lastDailyClaim",String(Date.now()))}catch{}
     overlay.remove();
     sJack();
-    tick("Daily bonus claimed: +"+$(bonus.total)+" (day "+newStreak+")");
+    tick("Daily bonus claimed: +"+$(bonus.total)+" (day "+newDay+")");
     updateStreakDisplay();
     updateBonusCountdown();
     render();sv();
+    // Check for 7-day streak milestone
+    if(newStreak>=7)checkMilestones();
     // Ask for push notification permission after 2nd daily claim
     setTimeout(askPushPermission,2000);
   };
@@ -1272,6 +1363,7 @@ function doPrestige(){
   const keepGlobalMult=S.globalMult||1;
   const keepNightManager=S.nightManagerTier||0;
   const keepExtendedHours=S.extendedHoursTier||0;
+  const keepMilestones=[...(S.milestonesShown||[])];
 
   Object.assign(S,{...DEF});
   S.chips=keepChips;S.pUps=keepPUps;S.prestiges=keepP;S.pMult=keepPM;
@@ -1282,6 +1374,7 @@ function doPrestige(){
   S.startCash=keepStartCash;S.startDealers=keepStartDealers;S.startTables=keepStartTables;
   S.globalMult=keepGlobalMult;
   S.nightManagerTier=keepNightManager;S.extendedHoursTier=keepExtendedHours;
+  S.milestonesShown=keepMilestones;
 
   // Apply prestige start bonuses
   S.cash=S.startCash||0;S.totalCash=S.cash;
@@ -1292,6 +1385,8 @@ function doPrestige(){
 
   tick("CASHED OUT. Earned "+earned+" chips. Total: "+S.chips+".");
   sv();render();
+  // Check for first prestige milestone
+  setTimeout(()=>checkMilestones(),500);
 }
 
 function buyPrestigeUp(id){
@@ -1306,6 +1401,101 @@ function buyPrestigeUp(id){
 }
 
 function sPrestige(){tn(440,.15,"sine",.12);setTimeout(()=>tn(554,.15,"sine",.1),100);setTimeout(()=>tn(659,.15,"sine",.1),200);setTimeout(()=>tn(880,.25,"sine",.14),300)}
+
+// ── Shareable Milestone Cards ──────────────────────────────────
+const MILESTONES=[
+  {id:"first_prestige",name:"First Cash Out",emoji:"\uD83C\uDFB0",check:()=>S.prestiges>=1},
+  {id:"1m_earnings",name:"Millionaire",emoji:"\uD83D\uDCB0",check:()=>S.totalCash>=1000000},
+  {id:"1b_earnings",name:"Billionaire",emoji:"\uD83D\uDCB0",check:()=>S.totalCash>=1000000000},
+  {id:"7day_streak",name:"7-Day Streak",emoji:"\uD83D\uDD25",check:()=>(S.dailyBonusStreak||0)>=7},
+  {id:"all_buildings",name:"Full Portfolio",emoji:"\uD83C\uDFD7\uFE0F",check:()=>{for(const b of BUILDINGS){if(!b.prestige&&own(b.id)===0)return false}return BUILDINGS.filter(b=>!b.prestige).length>0}},
+];
+
+function checkMilestones(){
+  for(const m of MILESTONES){
+    if((S.milestonesShown||[]).includes(m.id))continue;
+    if(m.check()){
+      if(!S.milestonesShown)S.milestonesShown=[];
+      S.milestonesShown.push(m.id);
+      sv();
+      showMilestoneCard(m);
+      return;// One at a time
+    }
+  }
+}
+
+function showMilestoneCard(m){
+  const bCount=Object.values(S.owned).reduce((a,b)=>a+b,0);
+  const cps=totalCPS();
+  const overlay=document.createElement("div");
+  overlay.className="ms-overlay";
+  overlay.innerHTML='<div class="ms-modal">'
+    +'<h2>'+m.emoji+' MILESTONE UNLOCKED</h2>'
+    +'<div class="ms-title">'+m.name+'</div>'
+    +'<div class="ms-stats">'
+    +'<div class="ms-stat"><div class="ms-stat-val">'+$(S.totalCash)+'</div><div class="ms-stat-label">Total earned</div></div>'
+    +'<div class="ms-stat"><div class="ms-stat-val">'+bCount+'</div><div class="ms-stat-label">Buildings</div></div>'
+    +'<div class="ms-stat"><div class="ms-stat-val">'+S.prestiges+'</div><div class="ms-stat-label">Prestiges</div></div>'
+    +'<div class="ms-stat"><div class="ms-stat-val">'+$(cps)+'/s</div><div class="ms-stat-label">Income</div></div>'
+    +'</div>'
+    +'<div class="ms-actions">'
+    +'<button class="ms-btn ms-btn-share" id="msShare">\uD83D\uDCCB Share Text</button>'
+    +'<button class="ms-btn ms-btn-copy" id="msCopyImg">\uD83D\uDDBC\uFE0F Copy Image</button>'
+    +'<button class="ms-btn ms-btn-close" id="msClose">Close</button>'
+    +'</div></div>';
+  document.body.appendChild(overlay);
+  sJack();
+
+  document.getElementById("msShare").onclick=function(){
+    const text=m.emoji+" MILESTONE: "+m.name+" "+m.emoji+"\n\n"
+      +"\uD83C\uDFB0 House Edge\n"
+      +"\uD83D\uDCB0 Total: "+$(S.totalCash)+"\n"
+      +"\uD83C\uDFD7\uFE0F Buildings: "+bCount+"\n"
+      +"\u2B50 Prestiges: "+S.prestiges+"\n"
+      +"\uD83D\uDCC8 Income: "+$(cps)+"/sec\n\n"
+      +"Play free: playhouseedge.com";
+    if(navigator.share){navigator.share({title:"House Edge - "+m.name,text:text}).catch(()=>{})}
+    else{navigator.clipboard.writeText(text).then(()=>{this.textContent="\u2713 Copied!";setTimeout(()=>{this.textContent="\uD83D\uDCCB Share Text"},1500)}).catch(()=>{})}
+  };
+
+  document.getElementById("msCopyImg").onclick=function(){
+    const btn=this;
+    const canvas=document.createElement("canvas");
+    canvas.width=400;canvas.height=280;
+    const ctx=canvas.getContext("2d");
+    // Background
+    const grad=ctx.createLinearGradient(0,0,400,280);
+    grad.addColorStop(0,"#1a0a3a");grad.addColorStop(1,"#0a1a0e");
+    ctx.fillStyle=grad;ctx.fillRect(0,0,400,280);
+    // Border
+    ctx.strokeStyle="#fbbf24";ctx.lineWidth=3;ctx.strokeRect(2,2,396,276);
+    // Title
+    ctx.fillStyle="#fbbf24";ctx.font="bold 16px Verdana";ctx.textAlign="center";
+    ctx.fillText(m.emoji+" MILESTONE UNLOCKED "+m.emoji,200,32);
+    // Name
+    ctx.fillStyle="#fff";ctx.font="bold 24px Verdana";
+    ctx.fillText(m.name,200,68);
+    // Stats
+    ctx.font="14px Verdana";ctx.fillStyle="#4ade80";
+    ctx.fillText("Total: "+$(S.totalCash),200,110);
+    ctx.fillText("Buildings: "+bCount+" | Prestiges: "+S.prestiges,200,135);
+    ctx.fillText("Income: "+$(cps)+"/sec",200,160);
+    // Footer
+    ctx.fillStyle="#888";ctx.font="11px Verdana";
+    ctx.fillText("House Edge - playhouseedge.com",200,200);
+    // Copy
+    canvas.toBlob(blob=>{
+      if(!blob)return;
+      try{
+        navigator.clipboard.write([new ClipboardItem({"image/png":blob})]).then(()=>{
+          btn.textContent="\u2713 Copied!";setTimeout(()=>{btn.textContent="\uD83D\uDDBC\uFE0F Copy Image"},1500);
+        }).catch(()=>{btn.textContent="Not supported";setTimeout(()=>{btn.textContent="\uD83D\uDDBC\uFE0F Copy Image"},1500)});
+      }catch{btn.textContent="Not supported";setTimeout(()=>{btn.textContent="\uD83D\uDDBC\uFE0F Copy Image"},1500)}
+    },"image/png");
+  };
+
+  document.getElementById("msClose").onclick=function(){overlay.remove()};
+}
 
 // ── Ticker ─────────────────────────────────────────────────────
 const TIPS=[
@@ -1713,12 +1903,15 @@ function render(){
     let shownLocked=0;
     for(const b of BUILDINGS){
       if(b.mw&&S.wins<b.mw)continue;
+      // VIP Lounge: only show after first prestige
+      if(b.prestige&&S.prestiges<1)continue;
       const c=bCost(b);
       const locked=S.cash<c;
       const owned=own(b.id);
+      const isVIP=!!b.prestige;
       // Only show if: owned at least 1, OR affordable, OR the next one the player is saving toward
       // Hide buildings that cost more than 100x current cash AND aren't owned (too far away)
-      if(owned===0&&c>S.totalCash*10&&c>S.cash*100){
+      if(owned===0&&c>S.totalCash*10&&c>S.cash*100&&!isVIP){
         // Show up to 3 locked buildings as teasers
         if(shownLocked<3){
           const lockOpacity=shownLocked===0?.4:shownLocked===1?.25:.15;
@@ -1727,7 +1920,11 @@ function render(){
         }
         continue;
       }
-      sl+=`<div class="store-item${locked?" locked":""}" onclick="buyB('${b.id}')"><span class="s-icon">${b.icon}</span><div class="s-info"><div class="s-name">${b.n}</div><div class="s-desc">${b.desc}</div></div><div class="s-cost">${$(c)}</div><div class="s-owned">${owned||""}</div></div>`;
+      if(isVIP){
+        sl+=`<div class="store-item vip-item${locked?" locked":""}" onclick="buyB('${b.id}')"><span class="s-icon">${b.icon}</span><div class="s-info"><div class="s-name">${b.n}<span class="vip-label">PRESTIGE EXCLUSIVE</span></div><div class="s-desc">${b.desc}</div></div><div class="s-cost">${$(c)}</div><div class="s-owned">${owned||""}</div></div>`;
+      }else{
+        sl+=`<div class="store-item${locked?" locked":""}" onclick="buyB('${b.id}')"><span class="s-icon">${b.icon}</span><div class="s-info"><div class="s-name">${b.n}</div><div class="s-desc">${b.desc}</div></div><div class="s-cost">${$(c)}</div><div class="s-owned">${owned||""}</div></div>`;
+      }
     }
   }else if(storeTab==="upgrades"){
     if(!S.hints)S.hints={};
@@ -1791,7 +1988,7 @@ function render(){
 }
 
 // ── Loop ───────────────────────────────────────────────────────
-let last=Date.now(),sT=0,rT=0;
+let last=Date.now(),sT=0,rT=0,msT=0;
 function loop(){
   const now=Date.now(),dt=now-last;last=now;
   autoTick(dt);
@@ -1799,6 +1996,8 @@ function loop(){
   document.getElementById("cashNum").textContent=$(S.cash);
   rT+=dt;if(rT>500){rT=0;render()}
   sT+=dt;if(sT>10000){sT=0;sv()}
+  // Milestone check every 5 seconds
+  msT+=dt;if(msT>5000){msT=0;checkMilestones()}
   // Random ticker tips
   if(Math.random()<.003)document.getElementById("ticker").textContent=TIPS[Math.floor(Math.random()*TIPS.length)];
   requestAnimationFrame(loop);
@@ -1844,30 +2043,58 @@ function showWelcomeBack(elapsed,earned){
   const capPct=Math.floor(capacityPercent());
   const sat=Math.round(S.satisfaction||50);
   const tip=getSmartTip(earned);
+
+  // Calculate comparison: how many hours of active clicking is this worth?
+  const cv=clickValue();
+  const clicksPerSecond=3;// Assume 3 clicks/sec active play
+  const activeEarnPerHour=cv*clicksPerSecond*3600;
+  const activeHoursEquiv=activeEarnPerHour>0?Math.max(0.1,earned/activeEarnPerHour):0;
+  const compStr=activeHoursEquiv>=1?activeHoursEquiv.toFixed(1)+" hours":(activeHoursEquiv*60).toFixed(0)+" minutes";
+
   const overlay=document.createElement("div");
   overlay.className="wb-overlay";
   overlay.innerHTML='<div class="wb-modal">'
     +'<h2>\uD83C\uDFB0 Welcome Back!</h2>'
     +'<div class="wb-sub">Your casino earned while you were away</div>'
-    +'<div class="wb-amount">'+$(earned)+'</div>'
+    +'<div class="wb-counter" id="wbCounter">'+$(0)+'</div>'
+    +'<div class="wb-comparison">That\'s <strong>'+compStr+'</strong> of active play!</div>'
     +'<div class="wb-efficiency">'+Math.round(offlineEfficiency()*100)+'% autopilot efficiency \u00B7 '+durStr+' away</div>'
     +'<div class="wb-stats">'
     +'<div class="wb-stat"><div class="wb-stat-val">'+capPct+'%</div><div class="wb-stat-label">Capacity</div></div>'
     +'<div class="wb-stat"><div class="wb-stat-val">'+sat+'%</div><div class="wb-stat-label">Satisfaction</div></div>'
     +'</div>'
     +'<div class="wb-tip">'+tip+'</div>'
-    +'<button class="wb-collect-btn" id="wbCollect">Collect</button>'
+    +'<button class="wb-collect-btn" id="wbCollect">\uD83D\uDCB0 Collect '+$(earned)+'</button>'
     +'</div>';
   document.body.appendChild(overlay);
+
+  // Animate counter from 0 to earned
+  const counterEl=document.getElementById("wbCounter");
+  const duration=1800;// 1.8 seconds
+  const startTime=Date.now();
+  function animateCounter(){
+    const elapsed=Date.now()-startTime;
+    const progress=Math.min(1,elapsed/duration);
+    // Ease out cubic for satisfying deceleration
+    const eased=1-Math.pow(1-progress,3);
+    const current=earned*eased;
+    counterEl.textContent=$(current);
+    if(progress<1)requestAnimationFrame(animateCounter);
+    else counterEl.textContent=$(earned);
+  }
+  requestAnimationFrame(animateCounter);
+
   document.getElementById("wbCollect").onclick=function(){
     S.cash+=earned;S.totalCash+=earned;
     overlay.remove();
     sWin();
     tick("Collected "+$(earned)+" from offline earnings.");
     render();sv();
+    // Check milestones after collecting
+    setTimeout(()=>checkMilestones(),300);
     // After collecting offline earnings, show daily bonus if available
     if(isDailyBonusAvailable()){
-      setTimeout(()=>showDailyBonusPopup(),400);
+      setTimeout(()=>showDailyBonusPopup(),600);
     }
   };
 }
